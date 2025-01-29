@@ -1,0 +1,20 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+pom.xml
+
+# Compiled class file
+src/main/resources/
+src/main/java/com/example/CapstoneProject/security/AzureBlobStorageConfig.java
