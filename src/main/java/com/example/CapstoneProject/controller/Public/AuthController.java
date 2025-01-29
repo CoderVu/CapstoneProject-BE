@@ -6,6 +6,7 @@
     import com.example.CapstoneProject.response.APIResponse;
     import com.example.CapstoneProject.response.JwtResponse;
     import com.example.CapstoneProject.service.Interface.IAuthService;
+    import jakarta.servlet.http.HttpServletResponse;
     import jakarta.validation.Valid;
     import lombok.RequiredArgsConstructor;
     import org.springframework.http.HttpStatus;
@@ -13,6 +14,8 @@
     import org.springframework.security.core.annotation.AuthenticationPrincipal;
     import org.springframework.security.oauth2.core.user.OAuth2User;
     import org.springframework.web.bind.annotation.*;
+
+    import java.io.IOException;
 
     @CrossOrigin
     @RestController
@@ -39,14 +42,25 @@
         }
 
         @GetMapping("/oauth2/callback")
-        public ResponseEntity<APIResponse> oauth2Callback(@AuthenticationPrincipal OAuth2User principal) {
-            JwtResponse jwtResponse = authService.oauth2Callback(principal.getAttribute("email"));
-            System.out.println(jwtResponse);
+        public void oauth2Callback(@AuthenticationPrincipal OAuth2User principal, HttpServletResponse response) throws IOException {
+            JwtResponse jwtResponse = authService.oauth2Callback(
+                    principal.getAttribute("email"),
+                    principal.getAttribute("name"),
+                    principal.getAttribute("picture")
+            );
+
             if (jwtResponse == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(APIResponse.error(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials"));
+                response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials");
+                return;
             }
-            APIResponse apiResponse = new APIResponse(HttpStatus.OK.value(), "Login successful", jwtResponse);
-            return ResponseEntity.ok(apiResponse);
+
+
+            // Create redirect URL with token and picture
+            String redirectUrl = String.format("http://localhost:3000/oauth2/callback?token=%s&picture=%s",
+                    jwtResponse.getToken(), principal.getAttribute("picture"));
+            System.out.println("token: " + jwtResponse.getToken());
+
+            // Redirect to the created URL
+            response.sendRedirect(redirectUrl);
         }
     }

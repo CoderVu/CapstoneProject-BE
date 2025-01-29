@@ -4,15 +4,14 @@ import com.example.CapstoneProject.model.User;
 import com.example.CapstoneProject.repository.UserRepository;
 import com.example.CapstoneProject.response.RoleResponse;
 import com.example.CapstoneProject.response.UserResponse;
-import com.example.CapstoneProject.security.user.ShopUserDetailsService;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.service.Interface.IUserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +21,13 @@ public class UserService implements IUserService {
 
     @Override
     public UserResponse getUserInfo(String token) {
-        String username = jwtUtils.getUserNameFromToken(token);
-        Optional<User> user = userRepository.findByPhoneNumber(username);
-        if (user.isEmpty()) {
-            user = userRepository.findByEmail(username);
+        String identifier = jwtUtils.getUserNameFromToken(token);
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
         }
         if (user.isEmpty()) {
             return null;
@@ -43,4 +45,5 @@ public class UserService implements IUserService {
                         .build())
                 .build();
     }
+
 }

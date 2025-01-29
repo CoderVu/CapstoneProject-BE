@@ -112,12 +112,13 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public JwtResponse oauth2Callback(String email) {
+    public JwtResponse oauth2Callback(String email, String fullName, String avatar) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
-
             User newUser = new User();
             newUser.setEmail(email);
+            newUser.setFullName(fullName);
+            newUser.setAvatar(avatar);
             Optional<Role> optionalRole = Optional.ofNullable(roleRepository.findByName("ROLE_USER"));
             if (optionalRole.isEmpty()) {
                 return null;

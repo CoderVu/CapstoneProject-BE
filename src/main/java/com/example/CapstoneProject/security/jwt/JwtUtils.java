@@ -51,9 +51,8 @@ public class JwtUtils {
                 .collect(Collectors.toList());
         return Jwts.builder()
                 .claim("phone", foodUserDetails.getPhoneNumber())
+                .claim("email", foodUserDetails.getEmail())
                 .claim("roles", roles)
-                .claim("sub", foodUserDetails.getSub())
-                .claim("facebookId", foodUserDetails.getFacebookId())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(Instant.now().plus(jwtExpirationMs, ChronoUnit.SECONDS).toEpochMilli()))
                 .setIssuer("ShopSystem")
@@ -78,17 +77,27 @@ public class JwtUtils {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-
         String phone = claims.get("phone", String.class);
-        String sub = claims.get("sub", String.class);
-        String facebookId = claims.get("facebookId", String.class);
+        String email = claims.get("email", String.class);
 
         if (phone != null) {
             return phone;
-        } else if (sub != null) {
-            return sub;
-        } else if (facebookId != null) {
-            return facebookId;
+        } else if (email != null) {
+            return email;
+        } else {
+            return null;
+        }
+    }
+    public String getEmailFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(jwtSecret)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        String email = claims.get("email", String.class);
+
+        if (email != null) {
+            return email;
         } else {
             return null;
         }

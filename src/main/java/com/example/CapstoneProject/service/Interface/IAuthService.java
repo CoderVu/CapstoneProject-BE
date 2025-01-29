@@ -14,6 +14,6 @@ public interface IAuthService {
 
     boolean isTokenInvalid(String token);
 
-    JwtResponse oauth2Callback(String email);
+    JwtResponse oauth2Callback(String email, String fullName, String avatar);
 
 }

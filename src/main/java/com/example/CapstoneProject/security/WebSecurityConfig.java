@@ -27,7 +27,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.io.IOException;
 
 @Configuration
 @RequiredArgsConstructor
@@ -101,7 +100,7 @@ public class WebSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH).permitAll()
-                        .requestMatchers(PUBLIC).permitAll()
+                        .requestMatchers(PUBLIC).hasAnyRole("USER", "ADMIN")
                         .requestMatchers(MOMO).permitAll()
                         .requestMatchers(ZALO).permitAll()
                         .requestMatchers(USER).permitAll()

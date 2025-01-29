@@ -24,11 +24,13 @@ public class ShopUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByUsernameOrSubOrFacebookId(identifier, identifier, identifier);
+        Optional<User> user = userRepository.findByUsernameOrEmail(identifier, identifier);
+
         if (user.isPresent()) {
             return ShopUserDetails.buildUserDetails(user.get());
         } else {
             throw new UsernameNotFoundException("User Not Found with identifier: " + identifier);
         }
+
     }
 }
