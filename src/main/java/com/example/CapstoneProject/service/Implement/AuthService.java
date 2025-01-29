@@ -8,6 +8,8 @@ import com.example.CapstoneProject.model.Role;
 import com.example.CapstoneProject.model.User;
 import com.example.CapstoneProject.repository.RoleRepository;
 import com.example.CapstoneProject.repository.UserRepository;
+import com.example.CapstoneProject.response.RoleResponse;
+import com.example.CapstoneProject.response.UserResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.security.user.ShopUserDetails;
 import com.example.CapstoneProject.service.Interface.IAuthService;
@@ -103,8 +105,52 @@ public class AuthService implements IAuthService {
         invalidTokens.add(token);
     }
 
+
     @Override
     public boolean isTokenInvalid(String token) {
         return invalidTokens.contains(token);
     }
+
+    @Override
+    public JwtResponse oauth2Callback(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+
+            User newUser = new User();
+            newUser.setEmail(email);
+            Optional<Role> optionalRole = Optional.ofNullable(roleRepository.findByName("ROLE_USER"));
+            if (optionalRole.isEmpty()) {
+                return null;
+            }
+            newUser.setRole(optionalRole.get());
+            userRepository.save(newUser);
+            user = userRepository.findByEmail(email);
+        }
+
+        ShopUserDetails userDetails = ShopUserDetails.buildUserDetails(user.get());
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String jwt = jwtUtils.generateJwtTokenForUser(authentication);
+
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        JwtResponse jwtResponse = JwtResponse.builder()
+                .id(user.get().getId().toString())
+                .email(user.get().getEmail())
+                .fullName(user.get().getFullName())
+                .phoneNumber(user.get().getPhoneNumber())
+                .address(user.get().getAddress())
+                .avatar(user.get().getAvatar())
+                .token(jwt)
+                .roles(roles)
+                .build();
+
+        return jwtResponse;
+    }
+
 }

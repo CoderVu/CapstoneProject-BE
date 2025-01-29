@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Map;
 @ControllerAdvice
@@ -24,6 +25,19 @@ public class GlobalException {
                         "status", HttpStatus.BAD_REQUEST.value(),
                         "error", "Bad Request",
                         "path", request.getDescription(false)
+                ))
+                .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<APIResponse> handleMaxSizeException(MaxUploadSizeExceededException exc) {
+        APIResponse apiResponse = APIResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("File too large!")
+                .data(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "Bad Request",
+                        "path", "N/A"
                 ))
                 .build();
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
