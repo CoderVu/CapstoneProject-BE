@@ -4,6 +4,7 @@ import com.example.CapstoneProject.Request.ProductRequest;
 import com.example.CapstoneProject.Request.VariantRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.mapper.ProductMapper;
+import com.example.CapstoneProject.model.Collection;
 import com.example.CapstoneProject.model.Image;
 import com.example.CapstoneProject.model.Product;
 import com.example.CapstoneProject.repository.*;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +36,10 @@ public class ProductService implements IProductService {
     private  ProductRepository productRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private BrandRepository brandRepository;
+    @Autowired
+    private CollectionRepository collectionRepository;
     @Autowired
     private ImageRepository imageRepository;
     @Autowired
@@ -131,6 +137,24 @@ public class ProductService implements IProductService {
     @Override
     public PaginatedResponse<ProductResponse> getAllProduct(Pageable pageable) {
         Page<Product> products = productRepository.findAll(pageable);
+        List<ProductResponse> productResponses = products.stream()
+                .map(productMapper::toProductResponse)
+                .collect(Collectors.toList());
+        return new PaginatedResponse<>(
+                productResponses,
+                products.getTotalPages(),
+                products.getTotalElements(),
+                products.getNumber(),
+                products.getSize()
+        );
+    }
+    @Override
+    public PaginatedResponse<ProductResponse> getProductsByCollection(String collectionId, Pageable pageable) {
+        Optional<Collection> collection = collectionRepository.findById(collectionId);
+        if (collection.isEmpty()) {
+            return null;
+        }
+        Page<Product> products = productRepository.findByCollections(collection.get(), pageable);
         List<ProductResponse> productResponses = products.stream()
                 .map(productMapper::toProductResponse)
                 .collect(Collectors.toList());

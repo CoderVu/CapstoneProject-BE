@@ -18,6 +18,13 @@ public class Product {
     @ManyToOne()
     @JoinColumn(name = "category_id")
     private Category category;
+    @ManyToMany
+    @JoinTable(
+            name = "product_collection",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "collection_id")
+    )
+    private List<Collection> collections = new ArrayList<>();
     @ManyToOne
     @JoinColumn(name = "brand_id")
     private Brand brand;

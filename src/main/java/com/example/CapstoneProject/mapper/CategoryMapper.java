@@ -3,11 +3,11 @@ package com.example.CapstoneProject.mapper;
 import com.example.CapstoneProject.Request.CategoryRequest;
 import com.example.CapstoneProject.model.Category;
 import com.example.CapstoneProject.response.CategoryResponse;
-
-import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 public class CategoryMapper {
+
     public static Category toCategory(CategoryRequest request) {
         Category category = new Category();
         category.setName(request.getName());

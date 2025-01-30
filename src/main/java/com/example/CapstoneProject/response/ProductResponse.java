@@ -20,6 +20,7 @@ public class ProductResponse {
     private String categoryName;
     private String brandName;
     private Boolean newProduct;
+    private List<CollectionResponse> collections;
     private List<ImageResponse> images;
     private ImageResponse mainImage;
 }

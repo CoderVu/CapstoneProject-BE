@@ -55,6 +55,16 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/products/collection/{id}")
+    public ResponseEntity<APIResponse> getProductsByCollectionId(
+        @PathVariable String id,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "30") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedResponse<ProductResponse> productResponses = productService.getProductsByCollection(id, pageable);
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/products/{id}")
     public ResponseEntity<APIResponse> getProductById(@PathVariable String id) {
         ProductResponse productResponse = productService.getProductById(id);

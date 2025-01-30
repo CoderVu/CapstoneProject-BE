@@ -2,7 +2,7 @@ package com.example.CapstoneProject.mapper;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.model.Color;
 import com.example.CapstoneProject.model.Size;
-import com.example.CapstoneProject.response.APIResponse;
+import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.Request.ProductRequest;
 import com.example.CapstoneProject.Request.VariantRequest;
 import com.example.CapstoneProject.model.Product;
@@ -11,9 +11,6 @@ import com.example.CapstoneProject.repository.BrandRepository;
 import com.example.CapstoneProject.repository.CategoryRepository;
 import com.example.CapstoneProject.repository.ColorRepository;
 import com.example.CapstoneProject.repository.SizeRepository;
-import com.example.CapstoneProject.response.ImageResponse;
-import com.example.CapstoneProject.response.ProductResponse;
-import com.example.CapstoneProject.response.VariantResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
@@ -122,6 +119,13 @@ public class ProductMapper {
                 .price(product.getPrice())
                 .brandName(product.getBrand().getName())
                 .categoryName(product.getCategory().getName())
+                .collections(product.getCollections().stream()
+                        .map(collection -> CollectionResponse.builder()
+                                .id(collection.getId())
+                                .name(collection.getName())
+                                .build())
+                        .collect(Collectors.toList()))
+
                 .newProduct(product.getNewProduct())
                 .images(product.getImages().stream()
                         .map(image -> new ImageResponse(image.getId(), image.getUrl()))
