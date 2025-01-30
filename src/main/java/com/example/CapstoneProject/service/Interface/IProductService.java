@@ -24,4 +24,6 @@ public interface IProductService {
     ProductResponse getProductById(String id);
 
     APIResponse addVariants(String productId, List<VariantRequest> variantRequests);
+
+    PaginatedResponse<ProductResponse> FilterProducts(Pageable pageable, String category, String brand, Double priceMin, Double priceMax, String color, String size);
 }

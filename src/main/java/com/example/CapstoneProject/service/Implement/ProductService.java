@@ -6,18 +6,19 @@ import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.mapper.ProductMapper;
 import com.example.CapstoneProject.model.Image;
 import com.example.CapstoneProject.model.Product;
-import com.example.CapstoneProject.model.ProductVariant;
 import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.PaginatedResponse;
 import com.example.CapstoneProject.response.ProductResponse;
 import com.example.CapstoneProject.service.ImageUploadService;
 import com.example.CapstoneProject.service.Interface.IProductService;
+import com.example.CapstoneProject.service.ProductSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -142,6 +143,39 @@ public class ProductService implements IProductService {
         );
     }
 
+    @Override
+    public PaginatedResponse<ProductResponse> FilterProducts(Pageable pageable, String category, String brand, Double priceMin, Double priceMax, String color, String size) {
+        Specification<Product> spec = Specification.where(null);
+
+        if (category != null && !category.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasCategory(category));
+        }
+        if (brand != null && !brand.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasBrand(brand));
+        }
+        if (priceMin != null && priceMax != null) {
+            spec = spec.and(ProductSpecification.hasPrice(priceMin, priceMax));
+        }
+        if (color != null && !color.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasColor(color));
+        }
+        if (size != null && !size.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasSize(size));
+        }
+
+        Page<Product> products = productRepository.findAll(spec, pageable);
+        List<ProductResponse> productResponses = products.stream()
+                .map(productMapper::toProductResponse)
+                .collect(Collectors.toList());
+
+        return new PaginatedResponse<>(
+                productResponses,
+                products.getTotalPages(),
+                products.getTotalElements(),
+                products.getNumber(),
+                products.getSize()
+        );
+    }
     @Override
     public ProductResponse getProductById(String id) {
         Product product = productRepository.findById(id).get();

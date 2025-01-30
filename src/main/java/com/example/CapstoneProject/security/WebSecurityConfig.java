@@ -100,12 +100,12 @@ public class WebSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH).permitAll()
-                        .requestMatchers(PUBLIC).hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(PUBLIC).permitAll()
+                        .requestMatchers(EMAIL).permitAll()
                         .requestMatchers(MOMO).permitAll()
                         .requestMatchers(ZALO).permitAll()
                         .requestMatchers(USER).permitAll()
-                        .requestMatchers(ADMIN).permitAll()
-                        .requestMatchers(EMAIL).permitAll()
+                        .requestMatchers(ADMIN).hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(jwtAuthEntryPoint)

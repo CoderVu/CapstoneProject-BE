@@ -101,8 +101,10 @@ public class AuthService implements IAuthService {
     private final Set<String> invalidTokens = new HashSet<>();
 
     @Override
-    public void logout(String token) {
+    public APIResponse logout(String token) {
+        jwtUtils.invalidateToken(token);
         invalidTokens.add(token);
+        return APIResponse.success(Code.OK.getCode(), "Logout successfully", null);
     }
 
 
@@ -153,5 +155,6 @@ public class AuthService implements IAuthService {
 
         return jwtResponse;
     }
+
 
 }

@@ -71,7 +71,7 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String getUserNameFromToken(String token) {
+    public String getUserFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(jwtSecret)
                 .build()
@@ -83,20 +83,6 @@ public class JwtUtils {
         if (phone != null) {
             return phone;
         } else if (email != null) {
-            return email;
-        } else {
-            return null;
-        }
-    }
-    public String getEmailFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(jwtSecret)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        String email = claims.get("email", String.class);
-
-        if (email != null) {
             return email;
         } else {
             return null;
@@ -122,4 +108,8 @@ public class JwtUtils {
         return false;
     }
 
+    public void invalidateToken(String token) {
+        authService.logout(token);
+
+    }
 }

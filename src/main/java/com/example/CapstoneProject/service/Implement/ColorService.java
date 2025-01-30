@@ -18,6 +18,7 @@ public class ColorService implements IColorService {
     @Autowired
     private ColorRepository colorRepository;
 
+    @Override
     public List<ColorResponse> getAllColor() {
         List<Color> colors = colorRepository.findAll();
         return colors.stream().map(ColorMapper::toColorResponse).collect(Collectors.toList());

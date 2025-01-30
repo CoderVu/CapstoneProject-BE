@@ -10,7 +10,7 @@ public interface IAuthService {
 
     APIResponse registerUser(RegisterRequest registerRequest);
 
-    void logout(String token);
+    APIResponse logout(String token);
 
     boolean isTokenInvalid(String token);
 
