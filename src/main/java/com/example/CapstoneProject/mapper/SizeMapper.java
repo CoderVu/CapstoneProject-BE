@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.mapper;
 
-import com.example.CapstoneProject.Request.SizeRequest;
+import com.example.CapstoneProject.request.SizeRequest;
 import com.example.CapstoneProject.model.Size;
 
 public class SizeMapper {

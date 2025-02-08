@@ -1,8 +1,8 @@
 
     package com.example.CapstoneProject.controller.Public;
 
-    import com.example.CapstoneProject.Request.LoginRequest;
-    import com.example.CapstoneProject.Request.RegisterRequest;
+    import com.example.CapstoneProject.request.LoginRequest;
+    import com.example.CapstoneProject.request.RegisterRequest;
     import com.example.CapstoneProject.response.APIResponse;
     import com.example.CapstoneProject.response.JwtResponse;
     import com.example.CapstoneProject.service.Interface.IAuthService;
@@ -53,14 +53,27 @@
                 response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials");
                 return;
             }
-
-
             // Create redirect URL with token and picture
-            String redirectUrl = String.format("http://localhost:3000/oauth2/callback?token=%s&picture=%s",
-                    jwtResponse.getToken(), principal.getAttribute("picture"));
+            String redirectUrl = String.format("http://localhost:3000/oauth2/callback?token=%s",
+                    jwtResponse.getToken());
             System.out.println("token: " + jwtResponse.getToken());
 
             // Redirect to the created URL
             response.sendRedirect(redirectUrl);
         }
+
+//        @GetMapping("/oauth2/callback")
+//        public ResponseEntity<APIResponse> oauth2Callback(@AuthenticationPrincipal OAuth2User principal) {
+//            JwtResponse jwtResponse = authService.oauth2Callback(
+//                    principal.getAttribute("email"),
+//                    principal.getAttribute("name"),
+//                    principal.getAttribute("picture")
+//            );
+//            if (jwtResponse == null) {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                        .body(APIResponse.error(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials"));
+//            }
+//            APIResponse apiResponse = new APIResponse(HttpStatus.OK.value(), "Login successful", jwtResponse);
+//            return ResponseEntity.ok(apiResponse);
+//        }
     }

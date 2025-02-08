@@ -71,6 +71,11 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponse);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/products/sale")
+    public ResponseEntity<APIResponse> getProductOnSale() {
+        APIResponse response = productService.getProductOnSale();
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/categories")
     public ResponseEntity<APIResponse> getAllCategories() {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), categoryService.getAllCategory());

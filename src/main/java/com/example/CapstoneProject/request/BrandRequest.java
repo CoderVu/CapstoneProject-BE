@@ -1,4 +1,4 @@
-package com.example.CapstoneProject.Request;
+package com.example.CapstoneProject.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SizeRequest {
-    private String size;
+public class BrandRequest {
+    private String brandName;
 }

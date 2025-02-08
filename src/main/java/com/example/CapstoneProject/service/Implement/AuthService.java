@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.Request.RegisterRequest;
+import com.example.CapstoneProject.request.RegisterRequest;
 import com.example.CapstoneProject.response.JwtResponse;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.StatusCode.Code;
@@ -8,8 +8,6 @@ import com.example.CapstoneProject.model.Role;
 import com.example.CapstoneProject.model.User;
 import com.example.CapstoneProject.repository.RoleRepository;
 import com.example.CapstoneProject.repository.UserRepository;
-import com.example.CapstoneProject.response.RoleResponse;
-import com.example.CapstoneProject.response.UserResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.security.user.ShopUserDetails;
 import com.example.CapstoneProject.service.Interface.IAuthService;
@@ -89,6 +87,7 @@ public class AuthService implements IAuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhoneNumber(request.getPhoneNumber());
         user.setAddress(request.getAddress());
+        user.setMethodLogin("NORMAL");
         Optional<Role> optionalRole = Optional.ofNullable(roleRepository.findByName("ROLE_USER"));
         if (optionalRole.isEmpty()) {
             return APIResponse.error(Code.NOT_FOUND.getCode(), "ROLE_USER not found");
@@ -121,6 +120,7 @@ public class AuthService implements IAuthService {
             newUser.setEmail(email);
             newUser.setFullName(fullName);
             newUser.setAvatar(avatar);
+            newUser.setMethodLogin("GOOGLE");
             Optional<Role> optionalRole = Optional.ofNullable(roleRepository.findByName("ROLE_USER"));
             if (optionalRole.isEmpty()) {
                 return null;

@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.Request.CollectionRequest;
+import com.example.CapstoneProject.request.CollectionRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.mapper.CollectionMapper;
 import com.example.CapstoneProject.model.Collection;

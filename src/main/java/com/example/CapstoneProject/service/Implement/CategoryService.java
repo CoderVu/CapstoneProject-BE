@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.Request.CategoryRequest;
+import com.example.CapstoneProject.request.CategoryRequest;
 import com.example.CapstoneProject.mapper.CategoryMapper;
 import com.example.CapstoneProject.model.Category;
 import com.example.CapstoneProject.repository.CategoryRepository;

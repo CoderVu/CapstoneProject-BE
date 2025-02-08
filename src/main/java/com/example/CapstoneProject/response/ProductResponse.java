@@ -16,6 +16,8 @@ public class ProductResponse {
     private String productName;
     private String description;
     private Integer price;
+    private Boolean onSale;
+    private Boolean bestSeller;
     private List<VariantResponse> variants;
     private String categoryName;
     private String brandName;
@@ -23,4 +25,5 @@ public class ProductResponse {
     private List<CollectionResponse> collections;
     private List<ImageResponse> images;
     private ImageResponse mainImage;
+    private ProductRateResponse rate;
 }

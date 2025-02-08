@@ -1,4 +1,4 @@
-package com.example.CapstoneProject.Request;
+package com.example.CapstoneProject.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

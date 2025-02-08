@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.Request.SizeRequest;
+import com.example.CapstoneProject.request.SizeRequest;
 import com.example.CapstoneProject.mapper.SizeMapper;
 import com.example.CapstoneProject.model.Size;
 import com.example.CapstoneProject.repository.SizeRepository;

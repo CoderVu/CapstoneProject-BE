@@ -23,8 +23,7 @@ public class ShopUserDetails implements UserDetails {
     private String password;
     private String fullName;
     private String email;
-    private String sub;
-    private String facebookId;
+    private String methodLogin;
     private String address;
     private String avatar;
     private LocalDateTime createdAt;
@@ -39,8 +38,7 @@ public class ShopUserDetails implements UserDetails {
                 user.getPassword(),
                 user.getFullName(),
                 user.getEmail(),
-                user.getSub(),
-                user.getFacebookId(),
+                user.getMethodLogin(),
                 user.getAddress(),
                 user.getAvatar(),
                 user.getCreatedAt(),

@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.Request.ColorRequest;
+import com.example.CapstoneProject.request.ColorRequest;
 import com.example.CapstoneProject.mapper.ColorMapper;
 import com.example.CapstoneProject.model.Color;
 import com.example.CapstoneProject.repository.ColorRepository;

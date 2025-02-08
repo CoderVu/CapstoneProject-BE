@@ -1,18 +1,17 @@
 package com.example.CapstoneProject.mapper;
+
 import com.example.CapstoneProject.StatusCode.Code;
-import com.example.CapstoneProject.model.Color;
-import com.example.CapstoneProject.model.Size;
+import com.example.CapstoneProject.model.*;
 import com.example.CapstoneProject.response.*;
-import com.example.CapstoneProject.Request.ProductRequest;
-import com.example.CapstoneProject.Request.VariantRequest;
-import com.example.CapstoneProject.model.Product;
-import com.example.CapstoneProject.model.ProductVariant;
+import com.example.CapstoneProject.request.ProductRequest;
+import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.repository.BrandRepository;
 import com.example.CapstoneProject.repository.CategoryRepository;
 import com.example.CapstoneProject.repository.ColorRepository;
 import com.example.CapstoneProject.repository.SizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.util.stream.Collectors;
 
 @Component
@@ -35,11 +34,14 @@ public class ProductMapper {
         product.setProductName(request.getProductName());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
+        product.setOnSale(request.getOnSale());
+        product.setBestSeller(request.getBestSeller());
         product.setBrand(brandRepository.findByName(request.getBrandName()));
         product.setCategory(categoryRepository.findByName(request.getCategoryName()));
         product.setNewProduct(request.getNewProduct());
         return product;
     }
+
     public APIResponse toProductVariant(VariantRequest variantRequest, Product product, boolean isUpdate) {
         ProductVariant variant = new ProductVariant();
         variant.setProduct(product);
@@ -111,12 +113,29 @@ public class ProductMapper {
                 .message("Variant added successfully")
                 .build();
     }
+
     public ProductResponse toProductResponse(Product product) {
+        Double averageRate = 0.0;
+        if (product.getRates() != null && !product.getRates().isEmpty()) {
+            averageRate = product.getRates().stream()
+                    .mapToDouble(Rate::getRate)
+                    .average()
+                    .orElse(0);
+        }
+        Integer totalRate = product.getRates() != null ? product.getRates().size() : 0;
+
+        ProductRateResponse productRateResponse = ProductRateResponse.builder()
+                .rating(averageRate)
+                .totalRate(totalRate)
+                .build();
+
         return ProductResponse.builder()
                 .id(product.getId())
                 .productName(product.getProductName())
                 .description(product.getDescription())
                 .price(product.getPrice())
+                .onSale(product.getOnSale())
+                .bestSeller(product.getBestSeller())
                 .brandName(product.getBrand().getName())
                 .categoryName(product.getCategory().getName())
                 .collections(product.getCollections().stream()
@@ -125,7 +144,6 @@ public class ProductMapper {
                                 .name(collection.getName())
                                 .build())
                         .collect(Collectors.toList()))
-
                 .newProduct(product.getNewProduct())
                 .images(product.getImages().stream()
                         .map(image -> new ImageResponse(image.getId(), image.getUrl()))
@@ -140,7 +158,7 @@ public class ProductMapper {
                                 .quantity(variant.getQuantity())
                                 .build())
                         .collect(Collectors.toList()))
+                .rate(productRateResponse)
                 .build();
     }
-
 }

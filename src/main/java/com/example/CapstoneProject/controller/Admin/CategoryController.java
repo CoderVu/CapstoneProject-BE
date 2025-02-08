@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.controller.Admin;
 
-import com.example.CapstoneProject.Request.CategoryRequest;
+import com.example.CapstoneProject.request.CategoryRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.service.Implement.CategoryService;
@@ -20,10 +20,10 @@ public class CategoryController {
         boolean isAdded = categoryService.addCategory(request);
         if (isAdded) {
             return ResponseEntity.status(Code.CREATED.getCode())
-                    .body(new APIResponse(Code.CREATED.getCode(),Code.CREATED.getMessage(), true));
+                    .body(new APIResponse(Code.CREATED.getCode(),Code.CREATED.getMessage(), ""));
         } else {
             return ResponseEntity.status(Code.CONFLICT.getCode())
-                    .body(new APIResponse(Code.CONFLICT.getCode(),Code.CONFLICT.getMessage(), false));
+                    .body(new APIResponse(Code.CONFLICT.getCode(),Code.CONFLICT.getMessage(), ""));
         }
     }
 }

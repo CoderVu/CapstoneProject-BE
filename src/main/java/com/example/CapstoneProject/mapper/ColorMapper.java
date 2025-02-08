@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.mapper;
 
-import com.example.CapstoneProject.Request.ColorRequest;
+import com.example.CapstoneProject.request.ColorRequest;
 import com.example.CapstoneProject.model.Color;
 import com.example.CapstoneProject.response.ColorResponse;
 

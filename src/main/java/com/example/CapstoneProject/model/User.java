@@ -16,13 +16,10 @@ public class User {
     private String id;
     private String fullName;
     private String email;
-    @Column(name = "facebook_id")
-    private String facebookId;
-    @Column(name = "sub")
-    private String sub;
     @Lob
     private String avatar;
     private String phoneNumber;
+    private String methodLogin;
     private String address;
     private String password;
     @ManyToOne(fetch = FetchType.EAGER)

@@ -54,7 +54,6 @@ spring:
             scope:
               - email
               - public_profile
-            redirect-uri: "${BASE_URL}/login/oauth2/code/facebook"
             authorization-grant-type: authorization_code
             client-name: facebook
         provider:

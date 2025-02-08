@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.Request.BrandRequest;
+import com.example.CapstoneProject.request.BrandRequest;
 import com.example.CapstoneProject.mapper.BrandMapper;
 import com.example.CapstoneProject.model.Brand;
 import com.example.CapstoneProject.repository.BrandRepository;

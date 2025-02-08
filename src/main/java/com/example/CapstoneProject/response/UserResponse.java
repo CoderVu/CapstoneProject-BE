@@ -16,6 +16,7 @@ public class UserResponse {
     private String address;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String methodLogin;
     private RoleResponse role;
 
 }

@@ -1,7 +1,7 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.Request.ProductRequest;
-import com.example.CapstoneProject.Request.VariantRequest;
+import com.example.CapstoneProject.request.ProductRequest;
+import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.mapper.ProductMapper;
 import com.example.CapstoneProject.model.Collection;
@@ -147,6 +147,18 @@ public class ProductService implements IProductService {
                 products.getNumber(),
                 products.getSize()
         );
+    }
+    @Override
+    public APIResponse getProductOnSale(){
+        List<Product> products = productRepository.findByOnSale(true);
+        List<ProductResponse> productResponses = products.stream()
+                .map(productMapper::toProductResponse)
+                .collect(Collectors.toList());
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Products on sale")
+                .data(productResponses)
+                .build();
     }
     @Override
     public PaginatedResponse<ProductResponse> getProductsByCollection(String collectionId, Pageable pageable) {

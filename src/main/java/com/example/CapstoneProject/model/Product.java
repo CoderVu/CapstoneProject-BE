@@ -13,6 +13,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String productName;
+    private Boolean onSale = (Boolean) false;
+    private Boolean bestSeller = (Boolean) false;
     private String description;
     private Integer price;
     @ManyToOne()
@@ -31,8 +33,10 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> images = new ArrayList<>();
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rate> rates = new ArrayList<>();
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants = new ArrayList<>();
-    private Boolean newProduct = false;
+    private Boolean newProduct = (Boolean) false;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "main_image_id", referencedColumnName = "id")
     private Image mainImage;

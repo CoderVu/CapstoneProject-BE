@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.controller.Admin;
 
-import com.example.CapstoneProject.Request.SizeRequest;
+import com.example.CapstoneProject.request.SizeRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.service.Implement.SizeService;
@@ -20,10 +20,10 @@ public class SizeController {
         boolean isAdded = sizeService.addSize(request);
         if (isAdded) {
             return ResponseEntity.status(Code.CREATED.getCode())
-                    .body(new APIResponse(Code.CREATED.getCode(), Code.CREATED.getMessage(), true));
+                    .body(new APIResponse(Code.CREATED.getCode(), Code.CREATED.getMessage(), ""));
         } else {
             return ResponseEntity.status(Code.CONFLICT.getCode())
-                    .body(new APIResponse(Code.CONFLICT.getCode(), Code.CONFLICT.getMessage(), false));
+                    .body(new APIResponse(Code.CONFLICT.getCode(), Code.CONFLICT.getMessage(), ""));
         }
     }
 }

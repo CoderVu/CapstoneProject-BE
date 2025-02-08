@@ -1,7 +1,7 @@
 package com.example.CapstoneProject.controller.Admin;
 
-import com.example.CapstoneProject.Request.ProductRequest;
-import com.example.CapstoneProject.Request.VariantRequest;
+import com.example.CapstoneProject.request.ProductRequest;
+import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.service.Interface.IProductService;
@@ -29,6 +29,8 @@ public class ProductController {
             @RequestParam("productName") String productName,
             @RequestParam("description") String description,
             @RequestParam("price") Integer price,
+            @RequestParam("onSale") Boolean onSale,
+            @RequestParam("bestSeller") Boolean bestSeller,
             @RequestParam("categoryName") String categoryName,
             @RequestParam("brandName") String brandName,
             @RequestParam("newProduct") Boolean newProduct,
@@ -39,6 +41,8 @@ public class ProductController {
                     .productName(productName)
                     .description(description)
                     .price(price)
+                    .onSale(onSale)
+                    .bestSeller(bestSeller)
                     .categoryName(categoryName)
                     .brandName(brandName)
                     .newProduct(newProduct)
@@ -47,13 +51,13 @@ public class ProductController {
             boolean isAdded = productService.addProduct(productRequest, imageFiles);
             return isAdded
                     ? ResponseEntity.status(Code.CREATED.getCode())
-                    .body(new APIResponse(Code.CREATED.getCode(), Code.CREATED.getMessage(), true))
+                    .body(new APIResponse(Code.CREATED.getCode(), Code.CREATED.getMessage(), ""))
                     : ResponseEntity.status(Code.CONFLICT.getCode())
-                    .body(new APIResponse(Code.CONFLICT.getCode(), "Product already exists", false));
+                    .body(new APIResponse(Code.CONFLICT.getCode(), "Product already exists", ""));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
-                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), false));
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
         }
     }
     @PostMapping(value = "/{productId}/variants", consumes = "application/json", produces = "application/json")
@@ -67,7 +71,7 @@ public class ProductController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
-                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), false));
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
         }
     }
     @PutMapping(value = "/{productId}/variants", consumes = "application/json", produces = "application/json")
@@ -81,7 +85,7 @@ public class ProductController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
-                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), false));
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
         }
     }
     /**
@@ -94,13 +98,13 @@ public class ProductController {
 
             return isDeleted
                     ? ResponseEntity.status(Code.OK.getCode())
-                    .body(new APIResponse(Code.OK.getCode(), "Product deleted successfully", true))
+                    .body(new APIResponse(Code.OK.getCode(), "Product deleted successfully", ""))
                     : ResponseEntity.status(Code.NOT_FOUND.getCode())
-                    .body(new APIResponse(Code.NOT_FOUND.getCode(), "Product not found", false));
+                    .body(new APIResponse(Code.NOT_FOUND.getCode(), "Product not found", ""));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
-                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), false));
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
         }
     }
 }

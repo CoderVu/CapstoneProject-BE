@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.service.Interface;
 
-import com.example.CapstoneProject.Request.BrandRequest;
+import com.example.CapstoneProject.request.BrandRequest;
 import com.example.CapstoneProject.response.BrandResponse;
 
 import java.util.List;

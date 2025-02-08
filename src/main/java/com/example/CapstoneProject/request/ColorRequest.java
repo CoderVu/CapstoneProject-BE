@@ -1,4 +1,4 @@
-package com.example.CapstoneProject.Request;
+package com.example.CapstoneProject.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BrandRequest {
-    private String brandName;
+public class ColorRequest {
+    private String color;
+    private String colorCode;
 }

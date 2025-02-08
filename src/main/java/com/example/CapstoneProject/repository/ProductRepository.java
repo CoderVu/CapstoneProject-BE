@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface ProductRepository extends JpaRepository<Product, String>, JpaSpecificationExecutor<Product> {
     @Query("SELECT p FROM Product p WHERE p.productName =:productName")
     Product findByName(String productName);
@@ -15,4 +17,6 @@ public interface ProductRepository extends JpaRepository<Product, String>, JpaSp
     boolean existsByProductName(String productName);
 
     Page<Product> findByCollections(Collection collection, Pageable pageable);
+
+    List<Product> findByOnSale(boolean onSale);
 }
