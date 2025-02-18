@@ -1,12 +1,15 @@
 package com.example.CapstoneProject.controller.Admin;
 
+import com.example.CapstoneProject.request.ProductDescriptionRequest;
 import com.example.CapstoneProject.request.ProductRequest;
 import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.StatusCode.Code;
+import com.example.CapstoneProject.service.Interface.IProductDescription;
 import com.example.CapstoneProject.service.Interface.IProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,8 +21,12 @@ import java.util.List;
 @RequestMapping("/api/v1/admin/products")
 @RequiredArgsConstructor
 public class ProductController {
+    @Autowired
+    private IProductService productService;
+    @Autowired
+    private IProductDescription productDescriptionService;
 
-    private final IProductService productService;
+
 
     /**
      * Add a new product with details and images
@@ -83,6 +90,21 @@ public class ProductController {
     ) {
         try {
             APIResponse response = productService.updateVariant(productId, variantRequest.getId(), variantRequest);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
+    }
+    @PostMapping(value = "/{productId}/description", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<APIResponse> addProductDescription(
+            @PathVariable String productId,
+            @RequestBody @Valid ProductDescriptionRequest productDescriptionRequest
+    ) {
+        try {
+            productDescriptionRequest.setProductId(productId);
+            APIResponse response = productDescriptionService.addProductDescription(productDescriptionRequest);
             return ResponseEntity.status(response.getStatusCode()).body(response);
         } catch (Exception e) {
             e.printStackTrace();

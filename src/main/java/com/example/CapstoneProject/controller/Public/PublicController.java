@@ -19,6 +19,8 @@ public class PublicController {
     @Autowired
     private IProductService productService;
     @Autowired
+    private IProductDescription productDescriptionService;
+    @Autowired
     private ICategoryService categoryService;
     @Autowired
     private IBrandService brandService;
@@ -28,7 +30,6 @@ public class PublicController {
     private IRateService rateService;
     @Autowired
     private IUserService userService;
-
 
     @GetMapping("/products")
     public ResponseEntity<APIResponse> getAllProducts(
@@ -90,6 +91,17 @@ public class PublicController {
     public ResponseEntity<APIResponse> getAllColors() {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), colorService.getAllColor());
         return ResponseEntity.ok(response);
+    }
+    @GetMapping(value = "/products/{productId}/description", produces = "application/json")
+    public ResponseEntity<APIResponse> getProductDescription(@PathVariable String productId) {
+        try {
+            APIResponse response = productDescriptionService.getProductDescription(productId);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
     }
     @GetMapping("/products/rated/{id}")
     public ResponseEntity<APIResponse> getRelatedProducts(@PathVariable String id,
