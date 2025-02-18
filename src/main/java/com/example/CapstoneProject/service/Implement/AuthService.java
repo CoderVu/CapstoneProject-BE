@@ -8,6 +8,7 @@ import com.example.CapstoneProject.model.Role;
 import com.example.CapstoneProject.model.User;
 import com.example.CapstoneProject.repository.RoleRepository;
 import com.example.CapstoneProject.repository.UserRepository;
+import com.example.CapstoneProject.response.RoleResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.security.user.ShopUserDetails;
 import com.example.CapstoneProject.service.Interface.IAuthService;
@@ -65,7 +66,10 @@ public class AuthService implements IAuthService {
                     .address(user.get().getAddress())
                     .avatar(user.get().getAvatar())
                     .token(jwt)
-                    .roles(roles)
+                    .role(RoleResponse.builder()
+                            .id(user.get().getRole().getId())
+                            .name(user.get().getRole().getName())
+                            .build())
                     .build();
             return jwtResponse;
         } catch (BadCredentialsException e) {
@@ -138,9 +142,9 @@ public class AuthService implements IAuthService {
 
         String jwt = jwtUtils.generateJwtTokenForUser(authentication);
 
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+//        List<String> roles = userDetails.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .toList();
 
         JwtResponse jwtResponse = JwtResponse.builder()
                 .id(user.get().getId().toString())
@@ -150,7 +154,10 @@ public class AuthService implements IAuthService {
                 .address(user.get().getAddress())
                 .avatar(user.get().getAvatar())
                 .token(jwt)
-                .roles(roles)
+                .role(RoleResponse.builder()
+                        .id(user.get().getRole().getId())
+                        .name(user.get().getRole().getName())
+                        .build())
                 .build();
 
         return jwtResponse;

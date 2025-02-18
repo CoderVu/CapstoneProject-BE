@@ -13,6 +13,7 @@ public class ProductRequest {
     private String productName;
     private String description;
     private Integer price;
+    private Integer discountPrice;
     private String categoryName;
     private Boolean onSale;
     private Boolean bestSeller;

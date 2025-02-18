@@ -29,6 +29,7 @@ public class ProductController {
             @RequestParam("productName") String productName,
             @RequestParam("description") String description,
             @RequestParam("price") Integer price,
+            @RequestParam("discountPrice") Integer discountPrice,
             @RequestParam("onSale") Boolean onSale,
             @RequestParam("bestSeller") Boolean bestSeller,
             @RequestParam("categoryName") String categoryName,
@@ -41,6 +42,7 @@ public class ProductController {
                     .productName(productName)
                     .description(description)
                     .price(price)
+                    .discountPrice(discountPrice)
                     .onSale(onSale)
                     .bestSeller(bestSeller)
                     .categoryName(categoryName)

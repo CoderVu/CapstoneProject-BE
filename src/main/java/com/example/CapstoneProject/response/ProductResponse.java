@@ -16,6 +16,7 @@ public class ProductResponse {
     private String productName;
     private String description;
     private Integer price;
+    private Integer discountPrice;
     private Boolean onSale;
     private Boolean bestSeller;
     private List<VariantResponse> variants;

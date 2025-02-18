@@ -42,4 +42,5 @@ public class CollectionService implements ICollectionService {
         collectionRepository.save(collection);
         return new APIResponse(Code.OK.getCode(), "Product added to collection", true);
     }
+
 }

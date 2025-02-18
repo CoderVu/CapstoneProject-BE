@@ -34,6 +34,7 @@ public class ProductMapper {
         product.setProductName(request.getProductName());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
+        product.setDiscountPrice(request.getDiscountPrice());
         product.setOnSale(request.getOnSale());
         product.setBestSeller(request.getBestSeller());
         product.setBrand(brandRepository.findByName(request.getBrandName()));
@@ -128,12 +129,13 @@ public class ProductMapper {
                 .rating(averageRate)
                 .totalRate(totalRate)
                 .build();
-
+        Integer discountPrice = 80;
         return ProductResponse.builder()
                 .id(product.getId())
                 .productName(product.getProductName())
                 .description(product.getDescription())
                 .price(product.getPrice())
+                .discountPrice(discountPrice)
                 .onSale(product.getOnSale())
                 .bestSeller(product.getBestSeller())
                 .brandName(product.getBrand().getName())
