@@ -1,16 +1,10 @@
 package com.example.CapstoneProject.controller.Public;
 
 import com.example.CapstoneProject.StatusCode.Code;
-import com.example.CapstoneProject.response.APIResponse;
-import com.example.CapstoneProject.response.PaginatedResponse;
-import com.example.CapstoneProject.response.ProductResponse;
-import com.example.CapstoneProject.service.Interface.IBrandService;
-import com.example.CapstoneProject.service.Interface.ICategoryService;
-import com.example.CapstoneProject.service.Interface.IColorService;
-import com.example.CapstoneProject.service.Interface.IProductService;
+import com.example.CapstoneProject.response.*;
+import com.example.CapstoneProject.service.Interface.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +18,19 @@ public class PublicController {
     @Autowired
     private IProductService productService;
     @Autowired
+    private IProductDescriptionService productDescriptionService;
+    @Autowired
+    private IProductCareInstructionsService productCareInstructionsService;
+    @Autowired
     private ICategoryService categoryService;
     @Autowired
     private IBrandService brandService;
     @Autowired
     private IColorService colorService;
+    @Autowired
+    private IRateService rateService;
+    @Autowired
+    private IUserService userService;
 
     @GetMapping("/products")
     public ResponseEntity<APIResponse> getAllProducts(
@@ -91,6 +93,42 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), colorService.getAllColor());
         return ResponseEntity.ok(response);
     }
+    @GetMapping(value = "/products/{productId}/description", produces = "application/json")
+    public ResponseEntity<APIResponse> getProductDescription(@PathVariable String productId) {
+        try {
+            APIResponse response = productDescriptionService.getProductDescription(productId);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
+    }
+    @GetMapping(value = "/products/{productId}/careInstruction", produces = "application/json")
+    public ResponseEntity<APIResponse> getProductCareInstruction(@PathVariable String productId) {
+        try {
+            APIResponse response = productCareInstructionsService.getProductCareInstructions(productId);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
+    }
+    @GetMapping("/products/rated/{id}")
+    public ResponseEntity<APIResponse> getRelatedProducts(@PathVariable String id,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "30") int size) {
+            Pageable pageable = PageRequest.of(page, size);
+            PaginatedResponse <RateResponse> rateResponsePaginatedResponse = rateService.getRates(pageable, id);
+            APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), rateResponsePaginatedResponse);
+            return ResponseEntity.ok(response);
 
-
+    }
+    @GetMapping("/users/{id}")
+    public ResponseEntity<APIResponse> getUserById(@PathVariable String id) {
+        UserResponse userResponse = userService.getUserInfoById(id);
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), userResponse);
+        return ResponseEntity.ok(response);
+    }
 }

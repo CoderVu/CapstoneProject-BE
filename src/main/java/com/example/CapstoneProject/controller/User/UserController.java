@@ -2,6 +2,7 @@ package com.example.CapstoneProject.controller.User;
 
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.response.APIResponse;
+import com.example.CapstoneProject.response.JwtResponse;
 import com.example.CapstoneProject.response.UserResponse;
 import com.example.CapstoneProject.service.Interface.IAuthService;
 import com.example.CapstoneProject.service.Interface.IUserService;
@@ -22,12 +23,12 @@ public class UserController {
 
     @GetMapping("/info/{token}")
     public ResponseEntity<APIResponse> getUserInfo(@PathVariable String token) {
-        UserResponse userResponse = userService.getUserInfo(token);
-        if (userResponse == null) {
+        JwtResponse jwtResponse = userService.getUserInfo(token);
+        if (jwtResponse == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(APIResponse.error(HttpStatus.NOT_FOUND.value(), "User not found"));
         }
-        return ResponseEntity.ok(APIResponse.success(HttpStatus.OK.value(), "User info retrieved", userResponse));
+        return ResponseEntity.ok(APIResponse.success(HttpStatus.OK.value(), "User info retrieved", jwtResponse));
     }
 
 
