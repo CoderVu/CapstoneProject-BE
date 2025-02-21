@@ -3,13 +3,21 @@ package com.example.CapstoneProject.controller.Public;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.service.Interface.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -135,16 +143,58 @@ public class PublicController {
         return ResponseEntity.ok(response);
     }
     
-@GetMapping("/orders/mock")
-public ResponseEntity<APIResponse> getMockOrder() {
-    NewOrderResponse mockOrder = NewOrderResponse.builder()
-            .id("12345")
-            .orderCode("ORD-67890")
-            .userName("John Doe")
-            .orderDate(LocalDateTime.now())
-            .build();
-    APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), mockOrder);
-    return ResponseEntity.ok(response);
-}
+    @GetMapping("/orders/mock")
+    public ResponseEntity<APIResponse> getMockOrder() {
+        NewOrderResponse mockOrder = NewOrderResponse.builder()
+                .id("12345")
+                .orderCode("ORD-67890")
+                .userName("John Doe")
+                .orderDate(LocalDateTime.now())
+                .build();
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), mockOrder);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/products/{id}/view")
+    public ResponseEntity<APIResponse> viewProduct(@PathVariable String id, @CookieValue(value = "viewedProducts", defaultValue = "") String viewedProducts, HttpServletResponse response) {
+        ProductResponse productResponse = productService.getProductById(id);
+        if (productResponse == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new APIResponse(HttpStatus.NOT_FOUND.value(), "Product not found", null));
+        }
+        if (!viewedProducts.contains(id)) {
+            if (!viewedProducts.isEmpty()) {
+                viewedProducts += "," + id;
+            } else {
+                viewedProducts = id;
+            }
+        }
+        String encodedViewedProducts = URLEncoder.encode(viewedProducts, StandardCharsets.UTF_8);
+
+        Cookie viewedProductsCookie = new Cookie("viewedProducts", encodedViewedProducts);
+        viewedProductsCookie.setPath("/");
+        viewedProductsCookie.setMaxAge(7 * 24 * 60 * 60);
+        response.addCookie(viewedProductsCookie);
+
+        APIResponse apiResponse = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponse);
+        return ResponseEntity.ok(apiResponse);
+    }
+    @GetMapping("/products/viewed")
+    public ResponseEntity<APIResponse> getViewedProducts(@CookieValue(value = "viewedProducts", defaultValue = "") String viewedProducts) {
+        if (viewedProducts.isEmpty()) {
+            return ResponseEntity.ok(new APIResponse(Code.OK.getCode(), "No viewed products", Collections.emptyList()));
+        }
+        String[] productIds = viewedProducts.split(",");
+        List<ProductResponse> productResponses = new ArrayList<>();
+        for (String productId : productIds) {
+            ProductResponse productResponse = productService.getProductById(productId);
+            if (productResponse != null) {
+                productResponses.add(productResponse);
+            }
+        }
+
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
+        return ResponseEntity.ok(response);
+    }
 
 }
