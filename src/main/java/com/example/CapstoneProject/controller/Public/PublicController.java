@@ -4,6 +4,9 @@ import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.service.Interface.*;
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -131,4 +134,17 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), userResponse);
         return ResponseEntity.ok(response);
     }
+    
+@GetMapping("/orders/mock")
+public ResponseEntity<APIResponse> getMockOrder() {
+    NewOrderResponse mockOrder = NewOrderResponse.builder()
+            .id("12345")
+            .orderCode("ORD-67890")
+            .userName("John Doe")
+            .orderDate(LocalDateTime.now())
+            .build();
+    APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), mockOrder);
+    return ResponseEntity.ok(response);
+}
+
 }
