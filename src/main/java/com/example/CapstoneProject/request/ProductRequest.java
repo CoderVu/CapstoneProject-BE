@@ -15,6 +15,7 @@ public class ProductRequest {
     private Integer price;
     private Integer discountPrice;
     private String categoryName;
+    private String gender;
     private Boolean onSale;
     private Boolean bestSeller;
     private String brandName;

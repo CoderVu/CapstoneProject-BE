@@ -72,6 +72,38 @@ public class ProductDescriptionService implements IProductDescriptionService {
                 .statusCode(200)
                 .build();
     }
+    @Override
+    public APIResponse updateProductDescription(ProductDescriptionRequest request) {
+        ProductDescription productDescription = productDescriptionRepository.findByProductId(request.getProductId());
+        if (productDescription == null) {
+            return APIResponse.builder()
+                    .data(null)
+                    .message("Product description not found")
+                    .statusCode(404)
+                    .build();
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String attributesJson;
+        try {
+            attributesJson = objectMapper.writeValueAsString(request.getAttributes());
+        } catch (Exception e) {
+            return APIResponse.builder()
+                    .data(null)
+                    .message("Error converting attributes to JSON")
+                    .statusCode(500)
+                    .build();
+        }
+
+        productDescription.setAttributes(attributesJson);
+        productDescription.setDescription(request.getDescription());
+        productDescriptionRepository.save(productDescription);
+
+        return APIResponse.builder()
+                .message("Product description updated successfully")
+                .statusCode(200)
+                .build();
+    }
 
     @Override
     public APIResponse getProductDescription(String productId) {

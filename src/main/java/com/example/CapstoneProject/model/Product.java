@@ -18,6 +18,7 @@ public class Product {
     private String description;
     private Integer price;
     private Integer discountPrice;
+    private String gender;
     @ManyToOne()
     @JoinColumn(name = "category_id")
     private Category category;

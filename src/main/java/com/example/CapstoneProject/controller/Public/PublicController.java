@@ -39,6 +39,8 @@ public class PublicController {
     @Autowired
     private IColorService colorService;
     @Autowired
+    private ISizeService sizeService;
+    @Autowired
     private IRateService rateService;
     @Autowired
     private IUserService userService;
@@ -57,6 +59,7 @@ public class PublicController {
     public ResponseEntity<APIResponse> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false) String gender,
             @RequestParam(required = false) String categoryProduct,
             @RequestParam(required = false) String brandProduct,
             @RequestParam(required = false) Double priceMin,
@@ -64,7 +67,7 @@ public class PublicController {
             @RequestParam(required = false) String colorProduct,
             @RequestParam(required = false) String sizeProduct) {
         Pageable pageable = PageRequest.of(page, size);
-        PaginatedResponse<ProductResponse> productResponses = productService.FilterProducts(pageable, categoryProduct, brandProduct, priceMin, priceMax, colorProduct, sizeProduct);
+        PaginatedResponse<ProductResponse> productResponses = productService.FilterProducts(pageable, gender, categoryProduct, brandProduct, priceMin, priceMax, colorProduct, sizeProduct);
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
         return ResponseEntity.ok(response);
     }
@@ -104,6 +107,11 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), colorService.getAllColor());
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/sizes")
+    public ResponseEntity<APIResponse> getAllSizes() {
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), sizeService.getAllSizes());
+        return ResponseEntity.ok(response);
+    }
     @GetMapping(value = "/products/{productId}/description", produces = "application/json")
     public ResponseEntity<APIResponse> getProductDescription(@PathVariable String productId) {
         try {
@@ -127,7 +135,7 @@ public class PublicController {
         }
     }
     @GetMapping("/products/rated/{id}")
-    public ResponseEntity<APIResponse> getRelatedProducts(@PathVariable String id,
+    public ResponseEntity<APIResponse> getRatedProducts(@PathVariable String id,
                                                           @RequestParam(defaultValue = "0") int page,
                                                           @RequestParam(defaultValue = "30") int size) {
             Pageable pageable = PageRequest.of(page, size);
@@ -196,5 +204,13 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
         return ResponseEntity.ok(response);
     }
-
+    @GetMapping("/products/related/{id}")
+     public ResponseEntity<APIResponse> getRelatedProducts(@PathVariable String id,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "30") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedResponse<ProductResponse> productResponses = productService.getRelatedProducts(id, pageable);
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
+        return ResponseEntity.ok(response);
+    }
 }

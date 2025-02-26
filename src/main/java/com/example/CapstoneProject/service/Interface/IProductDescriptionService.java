@@ -6,5 +6,7 @@ import com.example.CapstoneProject.response.APIResponse;
 public interface IProductDescriptionService {
     APIResponse addProductDescription(ProductDescriptionRequest request);
 
+    APIResponse updateProductDescription(ProductDescriptionRequest request);
+
     APIResponse getProductDescription(String productId);
 }

@@ -2,13 +2,10 @@ package com.example.CapstoneProject.mapper;
 
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.model.*;
+import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.request.ProductRequest;
 import com.example.CapstoneProject.request.VariantRequest;
-import com.example.CapstoneProject.repository.BrandRepository;
-import com.example.CapstoneProject.repository.CategoryRepository;
-import com.example.CapstoneProject.repository.ColorRepository;
-import com.example.CapstoneProject.repository.SizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +13,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class ProductMapper {
+    @Autowired
+    private ProductRepository productRepository;
 
     @Autowired
     private BrandRepository brandRepository;
@@ -28,20 +27,6 @@ public class ProductMapper {
 
     @Autowired
     private ColorRepository colorRepository;
-
-    public Product toProduct(ProductRequest request) {
-        Product product = new Product();
-        product.setProductName(request.getProductName());
-        product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
-        product.setDiscountPrice(request.getDiscountPrice());
-        product.setOnSale(request.getOnSale());
-        product.setBestSeller(request.getBestSeller());
-        product.setBrand(brandRepository.findByName(request.getBrandName()));
-        product.setCategory(categoryRepository.findByName(request.getCategoryName()));
-        product.setNewProduct(request.getNewProduct());
-        return product;
-    }
 
     public APIResponse toProductVariant(VariantRequest variantRequest, Product product, boolean isUpdate) {
         ProductVariant variant = new ProductVariant();
@@ -136,6 +121,7 @@ public class ProductMapper {
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .discountPrice(discountPrice)
+                .gender(product.getGender())
                 .onSale(product.getOnSale())
                 .bestSeller(product.getBestSeller())
                 .brandName(product.getBrand().getName())

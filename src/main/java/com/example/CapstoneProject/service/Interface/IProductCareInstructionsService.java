@@ -4,6 +4,7 @@ import com.example.CapstoneProject.request.ProductCareInstructionsRequest;
 import com.example.CapstoneProject.response.APIResponse;
 
 public interface IProductCareInstructionsService {
-     public APIResponse addProductCareInstructions(ProductCareInstructionsRequest request) ;
-     public APIResponse getProductCareInstructions(String productId) ;
+     APIResponse addProductCareInstructions(ProductCareInstructionsRequest request) ;
+     APIResponse getProductCareInstructions(String productId) ;
+     APIResponse updateProductCareInstructions(ProductCareInstructionsRequest request);
 }

@@ -5,6 +5,11 @@ import com.example.CapstoneProject.model.Product;
 
 public class ProductSpecification {
 
+    public static Specification<Product> hasGender(String gender) {
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("gender"), gender);
+    }
+
     public static Specification<Product> hasCategory(String category) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("category").get("name"), category);
     }

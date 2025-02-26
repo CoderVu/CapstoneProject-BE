@@ -8,5 +8,5 @@ public class VariantRequest {
     private String sizeName;
     private String colorName;
     private Integer quantity;
-    private Integer price;
+    private Double price;
 }

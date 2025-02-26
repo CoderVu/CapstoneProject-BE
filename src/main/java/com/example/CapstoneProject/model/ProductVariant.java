@@ -23,5 +23,5 @@ public class ProductVariant {
     @JoinColumn(name = "color_id")
     private Color color;
     private Integer quantity;
-    private Integer price;
+    private Double price;
 }

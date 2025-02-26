@@ -17,8 +17,8 @@ public class SizeService implements ISizeService {
 
     @Autowired
     private SizeRepository sizeRepository;
-
-    public List<SizeResponse> getAllSizes() {
+@Override
+public List<SizeResponse> getAllSizes() {
         List<Size> sizes = sizeRepository.findAll();
         return sizes.stream()
                 .map(size -> SizeResponse.builder()

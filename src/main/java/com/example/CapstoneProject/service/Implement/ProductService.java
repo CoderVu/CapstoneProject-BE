@@ -1,12 +1,10 @@
 package com.example.CapstoneProject.service.Implement;
 
+import com.example.CapstoneProject.model.*;
 import com.example.CapstoneProject.request.ProductRequest;
 import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.mapper.ProductMapper;
-import com.example.CapstoneProject.model.Collection;
-import com.example.CapstoneProject.model.Image;
-import com.example.CapstoneProject.model.Product;
 import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.PaginatedResponse;
@@ -25,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -54,18 +53,73 @@ public class ProductService implements IProductService {
 
 
     @Override
-    public boolean addProduct(ProductRequest request, List<MultipartFile> images) {
+    public APIResponse addProduct(ProductRequest request, List<MultipartFile> images) {
+        Product product = new Product();
         if (productRepository.existsByProductName(request.getProductName())) {
-            return false;
+            return APIResponse.builder()
+                    .statusCode(Code.CONFLICT.getCode())
+                    .message("Product already exists")
+                    .build();
         }
-        Product product = productMapper.toProduct(request);
+        product.setProductName(request.getProductName());
+        if (request.getDescription().length() < 10) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Description must be at least 10 characters")
+                    .build();
+        }
+        product.setDescription(request.getDescription());
+        if (request.getPrice() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Price must be greater than 0")
+                    .build();
+        }
+        product.setPrice(request.getPrice());
+        if (request.getDiscountPrice() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Discount price must be greater than 0")
+                    .build();
+        }
+        product.setDiscountPrice(request.getDiscountPrice());
+        product.setOnSale(request.getOnSale());
+        product.setBestSeller(request.getBestSeller());
+        if (request.getGender() == null || request.getGender().isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Không tìm thấy giới tính")
+                    .build();
+        }
+        product.setGender(request.getGender());
+        Brand brand = brandRepository.findByName(request.getBrandName());
+        if (brand == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Brand not found")
+                    .build();
+        }
+        product.setBrand(brand);
+        Category category = categoryRepository.findByName(request.getCategoryName());
+        if (category == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Category not found")
+                    .build();
+        }
+        product.setCategory(category);
+        product.setNewProduct(request.getNewProduct());
+
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile image : images) {
             try {
                 String imageUrl = imageUploadService.uploadImage(image);
                 imageUrls.add(imageUrl);
             } catch (IOException e) {
-                return false;
+                return APIResponse.builder()
+                        .statusCode(Code.INTERNAL_SERVER_ERROR.getCode())
+                        .message("Failed to upload image")
+                        .build();
             }
         }
         List<Image> imageEntities = new ArrayList<>();
@@ -75,12 +129,19 @@ public class ProductService implements IProductService {
             image.setProduct(product);
             imageEntities.add(image);
         }
-        if (!imageEntities.isEmpty()) {
-            product.setMainImage(imageEntities.get(0));
+        if (imageEntities.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("No images provided")
+                    .build();
         }
+        product.setMainImage(imageEntities.get(0));
         product.setImages(imageEntities);
         productRepository.save(product);
-        return true;
+        return APIResponse.builder()
+                .statusCode(Code.CREATED.getCode())
+                .message("Product created successfully")
+                .build();
     }
 
     @Override
@@ -160,6 +221,7 @@ public class ProductService implements IProductService {
                 .data(productResponses)
                 .build();
     }
+
     @Override
     public PaginatedResponse<ProductResponse> getProductsByCollection(String collectionId, Pageable pageable) {
         Optional<Collection> collection = collectionRepository.findById(collectionId);
@@ -180,8 +242,11 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public PaginatedResponse<ProductResponse> FilterProducts(Pageable pageable, String category, String brand, Double priceMin, Double priceMax, String color, String size) {
+    public PaginatedResponse<ProductResponse> FilterProducts(Pageable pageable, String gender, String category, String brand, Double priceMin, Double priceMax, String color, String size) {
         Specification<Product> spec = Specification.where(null);
+        if (gender != null && !gender.isEmpty()) {
+            spec = spec.and(ProductSpecification.hasGender(gender));
+        }
 
         if (category != null && !category.isEmpty()) {
             spec = spec.and(ProductSpecification.hasCategory(category));
@@ -210,6 +275,129 @@ public class ProductService implements IProductService {
                 products.getTotalElements(),
                 products.getNumber(),
                 products.getSize()
+        );
+    }
+    @Override
+    public APIResponse updateProduct(String productId, ProductRequest productRequest, List<MultipartFile> imageFiles) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Product not found")
+                    .build();
+        }
+        if (productRepository.existsByProductName(productRequest.getProductName()) && !product.getProductName().equals(productRequest.getProductName())) {
+            return APIResponse.builder()
+                    .statusCode(Code.CONFLICT.getCode())
+                    .message("Product already exists")
+                    .build();
+        }
+        product.setProductName(productRequest.getProductName());
+        if (productRequest.getDescription().length() < 10) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Description must be at least 10 characters")
+                    .build();
+        }
+        product.setDescription(productRequest.getDescription());
+        if (productRequest.getPrice() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Price must be greater than 0")
+                    .build();
+        }
+        product.setPrice(productRequest.getPrice());
+        if (productRequest.getDiscountPrice() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Discount price must be greater than 0")
+                    .build();
+        }
+        product.setDiscountPrice(productRequest.getDiscountPrice());
+        product.setOnSale(productRequest.getOnSale());
+        product.setBestSeller(productRequest.getBestSeller());
+        if (productRequest.getGender() == null || productRequest.getGender().isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Gender not found")
+                    .build();
+        }
+        product.setGender(productRequest.getGender());
+        Brand brand = brandRepository.findByName(productRequest.getBrandName());
+        if (brand == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Brand not found")
+                    .build();
+        }
+        product.setBrand(brand);
+        Category category = categoryRepository.findByName(productRequest.getCategoryName());
+        if (category == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Category not found")
+                    .build();
+        }
+        product.setCategory(category);
+        product.setNewProduct(productRequest.getNewProduct());
+
+        // Clear existing images to handle orphan removal
+        product.getImages().clear();
+        productRepository.save(product);
+
+        List<String> imageUrls = new ArrayList<>();
+        if (imageFiles != null) {
+            for (MultipartFile image : imageFiles) {
+                try {
+                    String imageUrl = imageUploadService.uploadImage(image);
+                    imageUrls.add(imageUrl);
+                } catch (IOException e) {
+                    return APIResponse.builder()
+                            .statusCode(Code.INTERNAL_SERVER_ERROR.getCode())
+                            .message("Failed to upload image")
+                            .build();
+                }
+            }
+        }
+        List<Image> imageEntities = new ArrayList<>();
+        for (String imageUrl : imageUrls) {
+            Image image = new Image();
+            image.setUrl(imageUrl);
+            image.setProduct(product);
+            imageEntities.add(image);
+        }
+        if (imageEntities.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("No images provided")
+                    .build();
+        }
+        product.setMainImage(imageEntities.get(0));
+        product.setImages(imageEntities);
+        productRepository.save(product);
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Product updated successfully")
+                .build();
+    }
+
+
+    @Override
+    public PaginatedResponse<ProductResponse> getRelatedProducts(String productId, Pageable pageable) {
+        Optional<Product> product = productRepository.findById(productId);
+        if (product.isEmpty()) {
+            return new PaginatedResponse<>(Collections.emptyList(), 0, 0, pageable.getPageNumber(), pageable.getPageSize());
+        }
+        List<Product> relatedProducts = productRepository.findRelatedProducts(product.get().getCategory().getId(), productId, pageable);
+        List<ProductResponse> productResponses = relatedProducts.stream()
+                .map(productMapper::toProductResponse)
+                .collect(Collectors.toList());
+        return new PaginatedResponse<>(
+                productResponses,
+                relatedProducts.size() / pageable.getPageSize(),
+                relatedProducts.size(),
+                pageable.getPageNumber(),
+                pageable.getPageSize()
         );
     }
     @Override

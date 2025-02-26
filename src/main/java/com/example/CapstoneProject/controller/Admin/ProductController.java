@@ -47,6 +47,7 @@ public class ProductController {
             @RequestParam("onSale") Boolean onSale,
             @RequestParam("bestSeller") Boolean bestSeller,
             @RequestParam("categoryName") String categoryName,
+            @RequestParam("gender") String gender,
             @RequestParam("brandName") String brandName,
             @RequestParam("newProduct") Boolean newProduct,
             @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles
@@ -58,22 +59,57 @@ public class ProductController {
                     .price(price)
                     .discountPrice(discountPrice)
                     .onSale(onSale)
+                    .gender(gender)
                     .bestSeller(bestSeller)
                     .categoryName(categoryName)
                     .brandName(brandName)
                     .newProduct(newProduct)
                     .build();
 
-            boolean isAdded = productService.addProduct(productRequest, imageFiles);
-            return isAdded
-                    ? ResponseEntity.status(Code.CREATED.getCode())
-                    .body(new APIResponse(Code.CREATED.getCode(), Code.CREATED.getMessage(), ""))
-                    : ResponseEntity.status(Code.CONFLICT.getCode())
-                    .body(new APIResponse(Code.CONFLICT.getCode(), "Product already exists", ""));
+            APIResponse isAdded = productService.addProduct(productRequest, imageFiles);
+            return ResponseEntity.status(isAdded.getStatusCode()).body(isAdded);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
                     .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
+    }
+    @PutMapping (value = "/update/{productId}", consumes = "multipart/form-data", produces = "application/json")
+    public ResponseEntity<APIResponse> updateProduct(
+            @PathVariable String productId,
+            @RequestParam("productName") String productName,
+            @RequestParam("description") String description,
+            @RequestParam("price") Integer price,
+            @RequestParam("discountPrice") Integer discountPrice,
+            @RequestParam("onSale") Boolean onSale,
+            @RequestParam("bestSeller") Boolean bestSeller,
+            @RequestParam("categoryName") String categoryName,
+            @RequestParam("gender") String gender,
+            @RequestParam("brandName") String brandName,
+            @RequestParam("newProduct") Boolean newProduct,
+            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles
+    ) {
+        try {
+            ProductRequest productRequest = ProductRequest.builder()
+                    .productName(productName)
+                    .description(description)
+                    .price(price)
+                    .discountPrice(discountPrice)
+                    .onSale(onSale)
+                    .gender(gender)
+                    .bestSeller(bestSeller)
+                    .categoryName(categoryName)
+                    .brandName(brandName)
+                    .newProduct(newProduct)
+                    .build();
+
+            APIResponse isUpdated = productService.updateProduct(productId, productRequest, imageFiles);
+            return ResponseEntity.status(isUpdated.getStatusCode()).body(isUpdated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+
         }
     }
     @PostMapping(value = "/{productId}/variants", consumes = "application/json", produces = "application/json")
@@ -119,6 +155,21 @@ public class ProductController {
                     .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
         }
     }
+    @PutMapping(value = "/{productId}/description", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<APIResponse> updateProductDescription(
+            @PathVariable String productId,
+            @RequestBody @Valid ProductDescriptionRequest productDescriptionRequest
+    ) {
+        try {
+            productDescriptionRequest.setProductId(productId);
+            APIResponse response = productDescriptionService.updateProductDescription(productDescriptionRequest);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
+    }
     @PostMapping(value = "/{productId}/careInstruction", consumes = "application/json", produces = "application/json")
     public ResponseEntity<APIResponse> addProductCareInstruction(
         @PathVariable String productId, @RequestBody ProductCareInstructionsRequest request) {
@@ -133,6 +184,21 @@ public class ProductController {
         }
 
        
+    }
+    @PutMapping(value = "/{productId}/careInstruction", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<APIResponse> updateProductCareInstruction(
+        @PathVariable String productId, @RequestBody ProductCareInstructionsRequest request) {
+        try {
+            request.setProductId(productId);
+            APIResponse response = productCareInstructionsService.updateProductCareInstructions(request);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
+
+
     }
     /**
      * Delete a product by its ID

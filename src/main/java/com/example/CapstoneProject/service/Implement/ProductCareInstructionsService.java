@@ -104,4 +104,34 @@ public class ProductCareInstructionsService implements IProductCareInstructionsS
                 .statusCode(200)
                 .build();
     }
+
+    @Override
+    public APIResponse updateProductCareInstructions(ProductCareInstructionsRequest request) {
+        CareInstructions careInstructions = careInstructionsRepository.findByProductId(request.getProductId());
+        if (careInstructions == null) {
+            return APIResponse.builder()
+                    .message("Product care instructions not found")
+                    .statusCode(404)
+                    .build();
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        String attributesJson;
+        try {
+            attributesJson = objectMapper.writeValueAsString(request.getAttributes());
+        } catch (Exception e) {
+            return APIResponse.builder()
+                    .data(null)
+                    .message("Error converting attributes to JSON")
+                    .statusCode(500)
+                    .build();
+        }
+
+        careInstructions.setAttributes(attributesJson);
+        careInstructions.setCareDetails(request.getDescription());
+        careInstructionsRepository.save(careInstructions);
+        return APIResponse.builder()
+                .message("Product care instructions updated successfully")
+                .statusCode(200)
+                .build();
+    }
 }
