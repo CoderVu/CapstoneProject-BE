@@ -28,78 +28,17 @@ public class ProductMapper {
     @Autowired
     private ColorRepository colorRepository;
 
-    public APIResponse toProductVariant(VariantRequest variantRequest, Product product, boolean isUpdate) {
-        ProductVariant variant = new ProductVariant();
-        variant.setProduct(product);
-        Size size = sizeRepository.findByName(variantRequest.getSizeName());
-        if (size == null) {
-            return APIResponse.builder()
-                    .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Size not found")
-                    .build();
-        }
-        variant.setSize(size);
-        Color color = colorRepository.findByColor(variantRequest.getColorName());
-        if (color == null) {
-            return APIResponse.builder()
-                    .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Color not found")
-                    .build();
-        }
-        variant.setColor(color);
-        if (variantRequest.getQuantity() < 0) {
-            return APIResponse.builder()
-                    .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Quantity must be greater than 0")
-                    .build();
-        }
-        variant.setQuantity(variantRequest.getQuantity());
 
-        if (variantRequest.getPrice() < 0) {
-            return APIResponse.builder()
-                    .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Price must be greater than 0")
-                    .build();
+    public ImageResponse toImageResponse(Image image) {
+        if (image == null) {
+            return null;
         }
-        variant.setPrice(variantRequest.getPrice());
-
-        if (!isUpdate && product.getVariants().stream()
-                .anyMatch(v -> v.getSize().getName().equals(variant.getSize().getName())
-                        && v.getColor().getColor().equals(variant.getColor().getColor()))) {
-            return APIResponse.builder()
-                    .statusCode(Code.CONFLICT.getCode())
-                    .message("Variant already exists")
-                    .build();
-        }
-
-        if (isUpdate) {
-            ProductVariant oldVariant = product.getVariants().stream()
-                    .filter(v -> v.getId().equals(variantRequest.getId()))
-                    .findFirst()
-                    .orElse(null);
-            if (oldVariant == null) {
-                return APIResponse.builder()
-                        .statusCode(Code.NOT_FOUND.getCode())
-                        .message("Variant not found")
-                        .build();
-            }
-            oldVariant.setSize(size);
-            oldVariant.setColor(color);
-            oldVariant.setQuantity(variantRequest.getQuantity());
-            oldVariant.setPrice(variantRequest.getPrice());
-            return APIResponse.builder()
-                    .statusCode(Code.OK.getCode())
-                    .message("Variant updated successfully")
-                    .build();
-        }
-
-        product.getVariants().add(variant);
-        return APIResponse.builder()
-                .statusCode(Code.CREATED.getCode())
-                .message("Variant added successfully")
+        return ImageResponse.builder()
+                .id(image.getId())
+                .path(image.getUrl())
+                .color(image.getColor())
                 .build();
     }
-
     public ProductResponse toProductResponse(Product product) {
         Double averageRate = 0.0;
         if (product.getRates() != null && !product.getRates().isEmpty()) {
@@ -134,13 +73,12 @@ public class ProductMapper {
                         .collect(Collectors.toList()))
                 .newProduct(product.getNewProduct())
                 .images(product.getImages().stream()
-                        .map(image -> new ImageResponse(image.getId(), image.getUrl()))
+                        .map(this::toImageResponse)
                         .collect(Collectors.toList()))
-                .mainImage(product.getMainImage() != null
-                        ? new ImageResponse(product.getMainImage().getId(), product.getMainImage().getUrl())
-                        : null)
+                .mainImage(toImageResponse(product.getMainImage()))
                 .variants(product.getVariants().stream()
                         .map(variant -> VariantResponse.builder()
+                                .id(variant.getId())
                                 .sizeName(variant.getSize().getName())
                                 .color(variant.getColor().getColor())
                                 .quantity(variant.getQuantity())

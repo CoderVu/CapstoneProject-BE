@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VariantResponse {
+public class
+
+VariantResponse {
+    private String id;
     private String sizeName;
     private String color;
     private Integer quantity;

@@ -2,6 +2,7 @@ package com.example.CapstoneProject.repository;
 
 import com.example.CapstoneProject.model.Collection;
 import com.example.CapstoneProject.model.Product;
+import com.example.CapstoneProject.model.ProductVariant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

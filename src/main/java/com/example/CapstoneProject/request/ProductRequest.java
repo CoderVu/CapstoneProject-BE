@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 
+import java.util.List;
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,4 +23,8 @@ public class ProductRequest {
     private Boolean bestSeller;
     private String brandName;
     private Boolean newProduct;
+    private List<String> imageIds;
+    private Map<String, List<String>> colorImages;
+    private Map<String, String> colorMap;
+    private String mainImageId;
 }

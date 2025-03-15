@@ -1,6 +1,7 @@
 package com.example.CapstoneProject.service.Implement;
 
 import com.example.CapstoneProject.model.*;
+import com.example.CapstoneProject.model.Collection;
 import com.example.CapstoneProject.request.ProductRequest;
 import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.StatusCode.Code;
@@ -22,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,8 +47,8 @@ public class ProductService implements IProductService {
     private SizeRepository sizeRepository;
     @Autowired
     private ColorRepository colorRepository;
-
-
+    @Autowired
+    private ProductVariantRepository productVariantRepository;
 
     @Override
     public APIResponse addProduct(ProductRequest request, List<MultipartFile> images) {
@@ -88,7 +86,7 @@ public class ProductService implements IProductService {
         if (request.getGender() == null || request.getGender().isEmpty()) {
             return APIResponse.builder()
                     .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Không tìm thấy giới tính")
+                    .message("Gender not found")
                     .build();
         }
         product.setGender(request.getGender());
@@ -137,6 +135,22 @@ public class ProductService implements IProductService {
         }
         product.setMainImage(imageEntities.get(0));
         product.setImages(imageEntities);
+
+        // Handle color-specific images
+        if (request.getColorImages() != null) {
+            for (Map.Entry<String, List<String>> entry : request.getColorImages().entrySet()) {
+                String color = entry.getKey();
+                List<String> colorImageUrls = entry.getValue();
+                for (String colorImageUrl : colorImageUrls) {
+                    Image image = new Image();
+                    image.setUrl(colorImageUrl);
+                    image.setColor(color);
+                    image.setProduct(product);
+                    product.getImages().add(image);
+                }
+            }
+        }
+
         productRepository.save(product);
         return APIResponse.builder()
                 .statusCode(Code.CREATED.getCode())
@@ -145,28 +159,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public APIResponse addVariants(String productId, List<VariantRequest> variantRequests) {
-        Product product = productRepository.findById(productId).orElse(null);
-        if (product == null) {
-            return APIResponse.builder()
-                    .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Product not found")
-                    .build();
-        }
-        for (VariantRequest variantRequest : variantRequests) {
-            APIResponse response = productMapper.toProductVariant(variantRequest, product, false);
-            if (response.getStatusCode() != Code.CREATED.getCode()) {
-                return response;
-            }
-        }
-        productRepository.save(product);
-        return APIResponse.builder()
-                .statusCode(Code.CREATED.getCode())
-                .message("Variants added successfully")
-                .build();
-    }
-    @Override
-    public APIResponse updateVariant(String productId, String variantId, VariantRequest variantRequest) {
+    public APIResponse addVariant(String productId, List<VariantRequest> variantRequests) {
         Product product = productRepository.findById(productId).orElse(null);
         if (product == null) {
             return APIResponse.builder()
@@ -175,15 +168,136 @@ public class ProductService implements IProductService {
                     .build();
         }
 
-        APIResponse response = productMapper.toProductVariant(variantRequest, product, true);
-        if (response.getStatusCode() != Code.OK.getCode()) {
-            return response;
+        for (VariantRequest variantRequest : variantRequests) {
+            Size size = sizeRepository.findByName(variantRequest.getSizeName());
+            if (size == null) {
+                return APIResponse.builder()
+                        .statusCode(Code.NOT_FOUND.getCode())
+                        .message("Size không tồn tại")
+                        .build();
+            }
+
+            Color color = colorRepository.findByColor(variantRequest.getColorName());
+            if (color == null) {
+                return APIResponse.builder()
+                        .statusCode(Code.NOT_FOUND.getCode())
+                        .message("Color không tồn tại")
+                        .build();
+            }
+
+            if (variantRequest.getQuantity() < 0) {
+                return APIResponse.builder()
+                        .statusCode(Code.BAD_REQUEST.getCode())
+                        .message("Quantity phải lớn hơn 0")
+                        .build();
+            }
+
+            if (variantRequest.getPrice() < 0) {
+                return APIResponse.builder()
+                        .statusCode(Code.BAD_REQUEST.getCode())
+                        .message("Price phải lớn hơn 0")
+                        .build();
+            }
+
+            ProductVariant existingVariant = product.getVariants().stream()
+                    .filter(v -> v.getSize().getName().equals(size.getName()) && v.getColor().getColor().equals(color.getColor()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingVariant != null) {
+                existingVariant.setQuantity(existingVariant.getQuantity() + variantRequest.getQuantity());
+                existingVariant.setPrice(variantRequest.getPrice());
+            } else {
+                ProductVariant newVariant = new ProductVariant();
+                newVariant.setSize(size);
+                newVariant.setColor(color);
+                newVariant.setQuantity(variantRequest.getQuantity());
+                newVariant.setPrice(variantRequest.getPrice());
+                newVariant.setProduct(product);
+                product.getVariants().add(newVariant);
+            }
         }
 
         productRepository.save(product);
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
-                .message("Variant updated successfully")
+                .message("Thêm variant mới thành công")
+                .build();
+    }
+
+    @Override
+    public APIResponse updateVariant(String productId, VariantRequest variantRequest) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Product not found")
+                    .build();
+        }
+
+        Size size = sizeRepository.findByName(variantRequest.getSizeName());
+        if (size == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Size không tồn tại")
+                    .build();
+        }
+
+        Color color = colorRepository.findByColor(variantRequest.getColorName());
+        if (color == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Color không tồn tại")
+                    .build();
+        }
+
+        if (variantRequest.getQuantity() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Quantity phải lớn hơn 0")
+                    .build();
+        }
+
+        if (variantRequest.getPrice() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Price phải lớn hơn 0")
+                    .build();
+        }
+
+        ProductVariant existingVariant = product.getVariants().stream()
+                .filter(v -> v.getSize().getName().equals(size.getName()) && v.getColor().getColor().equals(color.getColor()))
+                .findFirst()
+                .orElse(null);
+
+        if (existingVariant != null) {
+            existingVariant.setQuantity(variantRequest.getQuantity());
+            existingVariant.setPrice(variantRequest.getPrice());
+            productRepository.save(product);
+            return APIResponse.builder()
+                    .statusCode(Code.OK.getCode())
+                    .message("Cập nhật số lượng variant thành công")
+                    .build();
+        } else {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Variant không tồn tại")
+                    .build();
+        }
+    }
+    @Override
+    public APIResponse deleteVariant(String variantId) {
+        ProductVariant productVariant = productVariantRepository.findById(variantId).orElse(null);
+        if (productVariant == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Variant không tồn tại")
+                    .build();
+        }
+        productVariantRepository.delete(productVariant);
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Xóa variant thành công")
                 .build();
     }
 
@@ -277,109 +391,126 @@ public class ProductService implements IProductService {
                 products.getSize()
         );
     }
+
     @Override
-    public APIResponse updateProduct(String productId, ProductRequest productRequest, List<MultipartFile> imageFiles) {
+    public APIResponse updateProduct(String productId, ProductRequest productRequest, Map<String, MultipartFile[]> colorImages) {
         Product product = productRepository.findById(productId).orElse(null);
         if (product == null) {
             return APIResponse.builder()
                     .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Product not found")
+                    .message("Không tìm thấy sản phẩm")
                     .build();
         }
-        if (productRepository.existsByProductName(productRequest.getProductName()) && !product.getProductName().equals(productRequest.getProductName())) {
-            return APIResponse.builder()
-                    .statusCode(Code.CONFLICT.getCode())
-                    .message("Product already exists")
-                    .build();
-        }
+
         product.setProductName(productRequest.getProductName());
-        if (productRequest.getDescription().length() < 10) {
-            return APIResponse.builder()
-                    .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Description must be at least 10 characters")
-                    .build();
-        }
         product.setDescription(productRequest.getDescription());
-        if (productRequest.getPrice() < 0) {
-            return APIResponse.builder()
-                    .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Price must be greater than 0")
-                    .build();
-        }
         product.setPrice(productRequest.getPrice());
-        if (productRequest.getDiscountPrice() < 0) {
-            return APIResponse.builder()
-                    .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Discount price must be greater than 0")
-                    .build();
-        }
         product.setDiscountPrice(productRequest.getDiscountPrice());
         product.setOnSale(productRequest.getOnSale());
         product.setBestSeller(productRequest.getBestSeller());
-        if (productRequest.getGender() == null || productRequest.getGender().isEmpty()) {
-            return APIResponse.builder()
-                    .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Gender not found")
-                    .build();
-        }
         product.setGender(productRequest.getGender());
+
         Brand brand = brandRepository.findByName(productRequest.getBrandName());
         if (brand == null) {
             return APIResponse.builder()
                     .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Brand not found")
+                    .message("Brand không tồn tại")
                     .build();
         }
         product.setBrand(brand);
+
         Category category = categoryRepository.findByName(productRequest.getCategoryName());
         if (category == null) {
             return APIResponse.builder()
                     .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Category not found")
+                    .message("Category không tồn tại")
                     .build();
         }
         product.setCategory(category);
         product.setNewProduct(productRequest.getNewProduct());
 
-        // Clear existing images to handle orphan removal
-        product.getImages().clear();
-        productRepository.save(product);
+        // Cập nhật màu sắc cho ảnh đã có
+        if (productRequest.getColorMap() != null) {
+            for (Map.Entry<String, String> entry : productRequest.getColorMap().entrySet()) {
+                String imageId = entry.getKey();
+                String color = entry.getValue();
 
-        List<String> imageUrls = new ArrayList<>();
-        if (imageFiles != null) {
-            for (MultipartFile image : imageFiles) {
-                try {
-                    String imageUrl = imageUploadService.uploadImage(image);
-                    imageUrls.add(imageUrl);
-                } catch (IOException e) {
-                    return APIResponse.builder()
-                            .statusCode(Code.INTERNAL_SERVER_ERROR.getCode())
-                            .message("Failed to upload image")
-                            .build();
+                Image image = product.getImages().stream()
+                        .filter(img -> img.getId().equals(imageId))
+                        .findFirst()
+                        .orElse(null);
+
+                if (image != null) {
+                    image.setColor(color);
                 }
             }
         }
-        List<Image> imageEntities = new ArrayList<>();
-        for (String imageUrl : imageUrls) {
-            Image image = new Image();
-            image.setUrl(imageUrl);
-            image.setProduct(product);
-            imageEntities.add(image);
-        }
-        if (imageEntities.isEmpty()) {
+        // === Xử lý ảnh ===
+        if (productRequest.getMainImageId() == null || productRequest.getMainImageId().isEmpty()) {
             return APIResponse.builder()
                     .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("No images provided")
+                    .message("Cần chọn ảnh chính")
                     .build();
         }
-        product.setMainImage(imageEntities.get(0));
-        product.setImages(imageEntities);
+        if (productRequest.getImageIds() != null) {
+            // Xóa ảnh không còn trong danh sách `imageIds`
+            product.getImages().removeIf(image -> !productRequest.getImageIds().contains(image.getId()));
+        }
+
+        // Xử lý thêm ảnh màu mới
+        if (colorImages != null) {
+            for (Map.Entry<String, MultipartFile[]> entry : colorImages.entrySet()) {
+                String color = entry.getKey();
+                MultipartFile[] files = entry.getValue();
+                for (MultipartFile file : files) {
+                    try {
+                        String imageUrl = imageUploadService.uploadImage(file);
+                        Image image = new Image();
+                        image.setUrl(imageUrl);
+                        image.setColor(color);
+                        image.setProduct(product);
+                        product.getImages().add(image);
+                    } catch (IOException e) {
+                        return APIResponse.builder()
+                                .statusCode(Code.INTERNAL_SERVER_ERROR.getCode())
+                                .message("Failed to upload image")
+                                .build();
+                    }
+                }
+            }
+        }
+
+        // Cập nhật ảnh chính
+        if (productRequest.getMainImageId() != null) {
+            Image mainImage = product.getImages().stream()
+                    .filter(image -> image.getId().equals(productRequest.getMainImageId()))
+                    .findFirst()
+                    .orElse(null);
+            product.setMainImage(mainImage);
+        }
+
         productRepository.save(product);
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
-                .message("Product updated successfully")
+                .message("Cập nhật sản phẩm thành công")
                 .build();
     }
+    @Override
+    public String extractColorFromFileName(String fileName, Map<String, String> colorMap) {
+        for (Map.Entry<String, String> entry : colorMap.entrySet()) {
+            if (fileName.contains(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return "unknown";
+    }
+    @Override
+    public MultipartFile[] appendToArray(MultipartFile[] array, MultipartFile file) {
+        MultipartFile[] newArray = Arrays.copyOf(array, array.length + 1);
+        newArray[array.length] = file;
+        return newArray;
+    }
+
 
 
     @Override
@@ -404,6 +535,24 @@ public class ProductService implements IProductService {
     public ProductResponse getProductById(String id) {
         Product product = productRepository.findById(id).get();
         return productMapper.toProductResponse(product);
+    }
+    @Override
+    public APIResponse getColorByProductId(String productId) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Product not found")
+                    .build();
+        }
+        Set<String> colors = product.getVariants().stream()
+                .map(variant -> variant.getColor().getColor())
+                .collect(Collectors.toSet());
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Colors found")
+                .data(colors)
+                .build();
     }
 
 

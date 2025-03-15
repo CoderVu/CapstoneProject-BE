@@ -29,6 +29,13 @@ public class OrderController {
         APIResponse response = orderService.createOrderNow(request);
         return ResponseEntity.ok(response);
     }
+    @PostMapping
+    public ResponseEntity<APIResponse> createOrderCart(@RequestHeader("Authorization") String token, @RequestBody OrderRequest request) {
+        String newToken = token.substring(7);
+        request.setToken(newToken);
+        APIResponse response = orderService.createOrderFromCart(request);
+        return ResponseEntity.ok(response);
+    }
     @PostMapping("/rating")
     public ResponseEntity<APIResponse> rateProduct(
             @RequestHeader("Authorization") String token,

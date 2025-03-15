@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -70,6 +72,24 @@ public class UserService implements IUserService {
                         .name(user.get().getRole().getName())
                         .build())
                 .build();
+    }
+
+    @Override
+    public List<UserResponse> getAllUser() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(user -> UserResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddress())
+                .avatar(user.getAvatar())
+                .methodLogin(user.getMethodLogin())
+                .role(RoleResponse.builder()
+                        .id(user.getRole().getId())
+                        .name(user.getRole().getName())
+                        .build())
+                .build()).collect(Collectors.toList());
     }
 
 }

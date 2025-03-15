@@ -59,6 +59,12 @@ public class WebSecurityConfig {
     private static final String[] EMAIL = {
             "/api/v1/email/**"
     };
+    private static final String[] PAYMENT = {
+            "/api/analyze/**"
+    };
+    private static final String[] WS = {
+            "/ws/**"
+    };
 
     @Autowired
     public WebSecurityConfig(@Lazy JwtUtils jwtUtils, JwtAuthEntryPoint jwtAuthEntryPoint, ShopUserDetailsService userDetailsService) {
@@ -105,6 +111,8 @@ public class WebSecurityConfig {
                         .requestMatchers(MOMO).permitAll()
                         .requestMatchers(ZALO).permitAll()
                         .requestMatchers(USER).permitAll()
+                        .requestMatchers(PAYMENT).permitAll()
+                        .requestMatchers(WS).permitAll()
                         .requestMatchers(ADMIN).hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exception ->

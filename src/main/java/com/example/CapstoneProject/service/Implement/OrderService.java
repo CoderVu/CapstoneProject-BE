@@ -10,6 +10,7 @@ import com.example.CapstoneProject.service.Interface.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -32,6 +33,8 @@ public class OrderService implements IOrderService {
     private ProductVariantRepository productVariantRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CartRepository cartRepository;
     @Autowired
     private JwtUtils jwtUtils;
     public String generateUniqueOrderCode() {
@@ -118,6 +121,101 @@ public class OrderService implements IOrderService {
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
                 .message("Order created successfully")
+                .build();
+    }
+
+    @Override
+    public APIResponse createOrderFromCart(OrderRequest request) {
+        String identifier = jwtUtils.getUserFromToken(request.getToken());
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
+        }
+        if (user.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("User not found")
+                    .build();
+        }
+
+        // Retrieve cart items
+        List<Cart> cartItems = cartRepository.findByUserId(user.get().getId());
+        if (cartItems.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Cart is empty")
+                    .build();
+        }
+
+        // Create order
+        Order order = new Order();
+        order.setUser(user.get());
+        order.setOrderCode(generateUniqueOrderCode());
+        order.setDeliveryAddress(request.getDeliveryAddress());
+        order.setDeliveryPhone(request.getDeliveryPhone());
+        order.setStatus("PENDING");
+        orderRepository.save(order);
+
+        double totalAmount = 0;
+
+        for (Cart cartItem : cartItems) {
+            // Check if product variant exists
+
+            Optional<ProductVariant> productVariantOpt = productVariantRepository
+                    .findByProductIdAndSizeIdAndColorId(
+                            cartItem.getProductVariant().getProduct().getId(),
+                            cartItem.getProductVariant().getSize().getSizeId(),
+                            cartItem.getProductVariant().getColor().getColorId()
+                    );
+
+            if (productVariantOpt.isEmpty()) {
+                return APIResponse.builder()
+                        .statusCode(Code.NOT_FOUND.getCode())
+                        .message("Product variant not found for cart item")
+                        .build();
+            }
+
+            ProductVariant productVariant = productVariantOpt.get();
+
+            // Check if enough quantity is available
+            if (productVariant.getQuantity() < cartItem.getQuantity()) {
+                return APIResponse.builder()
+                        .statusCode(Code.BAD_REQUEST.getCode())
+                        .message("Not enough quantity in stock for cart item")
+                        .build();
+            }
+
+            // Update product variant quantity
+            productVariant.setQuantity(productVariant.getQuantity() - cartItem.getQuantity());
+            productVariantRepository.save(productVariant);
+
+            // Create order detail
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setProduct(productVariant.getProduct());
+            orderDetail.setQuantity(cartItem.getQuantity());
+            orderDetail.setTotalPrice(productVariant.getPrice() * cartItem.getQuantity());
+            orderDetail.setSize(productVariant.getSize());
+            orderDetail.setColor(productVariant.getColor());
+            orderDetail.setStatus("PENDING");
+            orderDetailRepository.save(orderDetail);
+
+            totalAmount += orderDetail.getTotalPrice();
+        }
+
+        // Update order total amount
+        order.setTotalAmount(totalAmount);
+        orderRepository.save(order);
+
+        // Clear cart
+        cartRepository.deleteAll(cartItems);
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Order created successfully from cart")
                 .build();
     }
 

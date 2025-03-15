@@ -12,5 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ImageResponse {
     private String id;
+    private String color;
     private String path;
 }
+

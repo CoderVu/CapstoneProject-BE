@@ -11,6 +11,7 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String url;
+    private String color;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;

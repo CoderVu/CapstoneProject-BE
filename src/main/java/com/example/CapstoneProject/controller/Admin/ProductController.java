@@ -9,14 +9,21 @@ import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.service.Interface.IProductCareInstructionsService;
 import com.example.CapstoneProject.service.Interface.IProductDescriptionService;
 import com.example.CapstoneProject.service.Interface.IProductService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -26,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/v1/admin/products")
 @RequiredArgsConstructor
 public class ProductController {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ProductController.class);
     @Autowired
     private IProductService productService;
     @Autowired
@@ -44,12 +52,12 @@ public class ProductController {
             @RequestParam("description") String description,
             @RequestParam("price") Integer price,
             @RequestParam("discountPrice") Integer discountPrice,
-            @RequestParam("onSale") Boolean onSale,
-            @RequestParam("bestSeller") Boolean bestSeller,
+            @RequestParam(value = "onSale", required = false) Boolean onSale,
+            @RequestParam(value = "bestSeller", required = false) Boolean bestSeller,
             @RequestParam("categoryName") String categoryName,
             @RequestParam("gender") String gender,
             @RequestParam("brandName") String brandName,
-            @RequestParam("newProduct") Boolean newProduct,
+            @RequestParam(value = "newProduct" , required = false) Boolean newProduct,
             @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles
     ) {
         try {
@@ -74,7 +82,8 @@ public class ProductController {
                     .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
         }
     }
-    @PutMapping (value = "/update/{productId}", consumes = "multipart/form-data", produces = "application/json")
+
+    @PutMapping(value = "/update/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<APIResponse> updateProduct(
             @PathVariable String productId,
             @RequestParam("productName") String productName,
@@ -87,9 +96,29 @@ public class ProductController {
             @RequestParam("gender") String gender,
             @RequestParam("brandName") String brandName,
             @RequestParam("newProduct") Boolean newProduct,
-            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles
+            @RequestParam("imageIds") List<String> imageIds,
+            @RequestParam("mainImageId") String mainImageId,
+            @RequestParam("colorMap") String colorMapJson, // JSON chứa ánh xạ màu sắc
+            @RequestParam(value = "colorImages", required = false) List<MultipartFile> colorImages // Danh sách ảnh
     ) {
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // Chuyển đổi colorMap JSON thành Map<String, String> (imageId -> color)
+            Map<String, String> colorMap = objectMapper.readValue(colorMapJson, new TypeReference<>() {});
+
+            // Chuyển `colorImages` từ List sang Map<String, MultipartFile[]>
+            Map<String, MultipartFile[]> colorImagesMap = new HashMap<>();
+            if (colorImages != null) {
+                for (MultipartFile file : colorImages) {
+                    String fileName = file.getOriginalFilename();
+                    String color = productService.extractColorFromFileName(fileName, colorMap);
+                    colorImagesMap.computeIfAbsent(color, k -> new MultipartFile[0]);
+                    colorImagesMap.put(color, productService.appendToArray(colorImagesMap.get(color), file));
+                }
+            }
+
+            // Tạo ProductRequest
             ProductRequest productRequest = ProductRequest.builder()
                     .productName(productName)
                     .description(description)
@@ -101,24 +130,30 @@ public class ProductController {
                     .categoryName(categoryName)
                     .brandName(brandName)
                     .newProduct(newProduct)
+                    .imageIds(imageIds)
+                    .mainImageId(mainImageId)
+                    .colorMap(colorMap) // Truyền colorMap vào
                     .build();
 
-            APIResponse isUpdated = productService.updateProduct(productId, productRequest, imageFiles);
+            APIResponse isUpdated = productService.updateProduct(productId, productRequest, colorImagesMap);
+
             return ResponseEntity.status(isUpdated.getStatusCode()).body(isUpdated);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
-                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
-
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new APIResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error: " + e.getMessage(), ""));
         }
     }
+
+
+
     @PostMapping(value = "/{productId}/variants", consumes = "application/json", produces = "application/json")
     public ResponseEntity<APIResponse> addVariants(
             @PathVariable String productId,
             @RequestBody @Valid List<VariantRequest> variantRequests
     ) {
         try {
-            APIResponse response = productService.addVariants(productId, variantRequests);
+            APIResponse response = productService.addVariant(productId, variantRequests);
             return ResponseEntity.status(response.getStatusCode()).body(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -132,7 +167,7 @@ public class ProductController {
             @RequestBody @Valid VariantRequest variantRequest
     ) {
         try {
-            APIResponse response = productService.updateVariant(productId, variantRequest.getId(), variantRequest);
+            APIResponse response = productService.updateVariant(productId, variantRequest);
             return ResponseEntity.status(response.getStatusCode()).body(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,6 +175,21 @@ public class ProductController {
                     .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
         }
     }
+    @DeleteMapping(value = "/variants/{variantId}", produces = "application/json")
+    public ResponseEntity<APIResponse> deleteVariant(
+            @PathVariable String variantId
+
+    ) {
+        try {
+            APIResponse response = productService.deleteVariant(variantId);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(Code.INTERNAL_SERVER_ERROR.getCode())
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Internal server error: " + e.getMessage(), ""));
+        }
+    }
+
     @PostMapping(value = "/{productId}/description", consumes = "application/json", produces = "application/json")
     public ResponseEntity<APIResponse> addProductDescription(
             @PathVariable String productId,

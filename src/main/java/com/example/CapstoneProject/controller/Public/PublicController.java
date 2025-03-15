@@ -213,4 +213,15 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/products/color/{productId}")
+    public ResponseEntity<APIResponse> getColorsByProductId(@PathVariable String productId) {
+        APIResponse response = productService.getColorByProductId(productId);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/users/all-chat")
+    public ResponseEntity<APIResponse> getAllChatUsers() {
+        List<UserResponse> users = userService.getAllUser();
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), users);
+        return ResponseEntity.ok(response);
+    }
 }
