@@ -31,8 +31,14 @@ public class ImageUploadService {
         blobClient.upload(file.getInputStream(), file.getSize(), true);
         blobClient.setHttpHeaders(new BlobHttpHeaders().setContentType(file.getContentType()));
         return blobClient.getBlobUrl();
+
     }
 
+    public void deleteImage(String fileName) {
+        BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient("images");
+        BlobClient blobClient = containerClient.getBlobClient(fileName);
+        blobClient.delete();
+    }
     private String generateFileName(MultipartFile file) {
         return UUID.randomUUID() + "-" + file.getOriginalFilename();
     }

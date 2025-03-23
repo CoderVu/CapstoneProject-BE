@@ -13,6 +13,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String name;
+    private String imageUrl;
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products;
 }

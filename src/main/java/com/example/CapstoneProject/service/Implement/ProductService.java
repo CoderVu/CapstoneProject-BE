@@ -8,6 +8,7 @@ import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.mapper.ProductMapper;
 import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.APIResponse;
+import com.example.CapstoneProject.response.ImageResponse;
 import com.example.CapstoneProject.response.PaginatedResponse;
 import com.example.CapstoneProject.response.ProductResponse;
 import com.example.CapstoneProject.service.ImageUploadService;
@@ -552,6 +553,18 @@ public class ProductService implements IProductService {
                 .statusCode(Code.OK.getCode())
                 .message("Colors found")
                 .data(colors)
+                .build();
+    }
+    @Override
+    public APIResponse getAllImages() {
+        List<Image> images = imageRepository.findAll();
+        List<ImageResponse> imageResponses = images.stream()
+                .map(image -> new ImageResponse(image.getId(), image.getUrl(), image.getColor()))
+                .collect(Collectors.toList());
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Images found")
+                .data(imageResponses)
                 .build();
     }
 

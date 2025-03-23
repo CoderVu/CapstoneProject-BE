@@ -16,4 +16,6 @@ public interface CartRepository extends JpaRepository<Cart, String> {
     Page<Cart> findByUser(User user, Pageable pageable);
     @Query("SELECT c FROM Cart c WHERE c.user.id =:userId")
     List<Cart> findByUserId(String userId);
+    @Query("SELECT c FROM Cart c WHERE c.user.id =:id AND c.id IN :cartIds")
+    List<Cart> findByUserIdAndIdIn(String id, List<String> cartIds);
 }

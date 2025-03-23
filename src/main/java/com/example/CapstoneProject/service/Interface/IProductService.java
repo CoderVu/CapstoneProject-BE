@@ -45,4 +45,6 @@ public interface IProductService {
 
 
     APIResponse getColorByProductId(String productId);
+
+    APIResponse getAllImages();
 }

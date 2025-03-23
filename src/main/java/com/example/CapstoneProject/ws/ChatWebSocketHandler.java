@@ -2,6 +2,8 @@ package com.example.CapstoneProject.ws;
 
 import com.example.CapstoneProject.model.User;
 import com.example.CapstoneProject.repository.UserRepository;
+import com.example.CapstoneProject.request.ChatRequest;
+import com.example.CapstoneProject.service.Interface.IChatService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,43 +23,67 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private UserRepository userRepository;
-
+    @Autowired
+    private IChatService chatService;
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
         try {
             Map<String, Object> payload = objectMapper.readValue(message.getPayload(), Map.class);
             String type = (String) payload.get("type");
 
-        if ("identify".equals(type)) {
-            String userId = payload.get("userId").toString();
-             session.getAttributes().put("userId", userId);
-            userSessions.computeIfAbsent(userId, k -> new ArrayList<>()).add(session);
-            sendOnlineUsersUpdate(session);
-             sendStatusAllUsers(userId, true);
-            return;
-        }
-
-
-            String receiverId = payload.get("receiver").toString();
-        if (receiverId == null) {
-            System.out.println("Receiver is empty");
-            return;
-        }
-
-            String senderId = payload.get("sender").toString();
-            String chatMessage = payload.containsKey("message") ? payload.get("message").toString() : null;
-
-            if (chatMessage == null) {
-                System.out.println("Message is empty");
+            if ("identify".equals(type)) {
+                String userId = payload.getOrDefault("userId", "").toString();
+                if (!userId.isEmpty()) {
+                    session.getAttributes().put("userId", userId);
+                    userSessions.computeIfAbsent(userId, k -> new ArrayList<>()).add(session);
+                    sendOnlineUsersUpdate(session);
+                    sendStatusAllUsers(userId, true);
+                } else {
+                    System.out.println("User ID is null in identify message");
+                }
                 return;
             }
 
+            // Get sender and receiver safely
+            String senderId = payload.getOrDefault("sender", "").toString();
+            String receiverId = payload.getOrDefault("receiver", "").toString();
+
+            if (senderId.isEmpty() || receiverId.isEmpty()) {
+                System.out.println("Sender or receiver is empty");
+                return;
+            }
+
+            // Get message and imageUrl safely
+            String chatMessage = payload.containsKey("message") && payload.get("message") != null
+                    ? payload.get("message").toString()
+                    : null;
+            String imageUrl = payload.containsKey("imageUrl") && payload.get("imageUrl") != null
+                    ? payload.get("imageUrl").toString()
+                    : null;
+
+            // Ensure at least one of them exists
+            if (chatMessage == null && imageUrl == null) {
+                System.out.println("Both message and image are empty");
+                return;
+            }
+
+            // Validate sender
             User sender = userRepository.findById(senderId).orElse(null);
             if (sender == null) {
                 System.out.println("Sender not found: " + senderId);
                 return;
             }
 
+            // Save chat
+            ChatRequest chatRequest = new ChatRequest();
+            chatRequest.setSender(senderId);
+            chatRequest.setReceiver(receiverId);
+            chatRequest.setMessage(chatMessage);
+            chatRequest.setImage(imageUrl);
+            chatRequest.setIsRead(false);
+            chatService.saveChat(chatRequest);
+
+            // Send to receiver
             List<WebSocketSession> receiverSessions = userSessions.get(receiverId);
             if (receiverSessions != null) {
                 for (WebSocketSession receiverSession : receiverSessions) {
@@ -67,24 +93,19 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 }
             }
 
-            // Check if sender and receiver are not the same person
+            // Send to sender (if different)
             if (!receiverId.equals(senderId)) {
-                System.out.println("Receiver id mismatch");
                 List<WebSocketSession> senderSessions = userSessions.get(senderId);
-                System.out.println("Sender id mismatch");
                 if (senderSessions != null) {
-                    System.out.println("Sender sessions mismatch");
                     for (WebSocketSession senderSession : senderSessions) {
-                        System.out.println("Sender session id mismatch");
-                        if (senderSession.isOpen()) {
-
-                            System.out.println("Sender: " + senderId + " Receiver: " + receiverId);
-                            System.out.println("Message: " + chatMessage);
+                        if (senderSession != null && senderSession.isOpen()) {
                             senderSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(payload)));
                         }
                     }
                 }
             }
+
+            System.out.println("Message sent: " + payload);
         } catch (Exception e) {
             System.out.println("Error processing message: " + e.getMessage());
             e.printStackTrace();

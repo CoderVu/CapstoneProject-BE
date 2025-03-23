@@ -25,5 +25,4 @@ public class OrderDetail {
     @ManyToOne
     @JoinColumn(name = "color_id")
     private Color color;
-    private String status;
 }

@@ -1,10 +1,12 @@
 package com.example.CapstoneProject.service.Implement;
 
-import com.example.CapstoneProject.request.OrderRequest;
+import com.example.CapstoneProject.request.PaymentRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.model.*;
 import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.APIResponse;
+import com.example.CapstoneProject.response.OrderDetailResponse;
+import com.example.CapstoneProject.response.OrderHistoryResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.service.Interface.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService implements IOrderService {
@@ -37,6 +40,7 @@ public class OrderService implements IOrderService {
     private CartRepository cartRepository;
     @Autowired
     private JwtUtils jwtUtils;
+    @Override
     public String generateUniqueOrderCode() {
         Random random = new Random();
         String orderCode;
@@ -47,7 +51,7 @@ public class OrderService implements IOrderService {
     }
 
     @Override
-    public APIResponse createOrderNow(OrderRequest request) {
+    public APIResponse createOrderNow(PaymentRequest request) {
         String identifier = jwtUtils.getUserFromToken(request.getToken());
         Optional<User> user = Optional.empty();
         if (identifier != null) {
@@ -115,7 +119,6 @@ public class OrderService implements IOrderService {
         orderDetail.setTotalPrice((double) (productVariant.getPrice() * request.getQuantity()));
         orderDetail.setSize(sizeRepository.findById(request.getSize()).get());
         orderDetail.setColor(colorRepository.findById(request.getColor()).get());
-        orderDetail.setStatus("PENDING");
         orderDetailRepository.save(orderDetail);
 
         return APIResponse.builder()
@@ -125,7 +128,7 @@ public class OrderService implements IOrderService {
     }
 
     @Override
-    public APIResponse createOrderFromCart(OrderRequest request) {
+    public APIResponse createOrderFromCart(PaymentRequest request) {
         String identifier = jwtUtils.getUserFromToken(request.getToken());
         Optional<User> user = Optional.empty();
         if (identifier != null) {
@@ -142,13 +145,14 @@ public class OrderService implements IOrderService {
         }
 
         // Retrieve cart items
-        List<Cart> cartItems = cartRepository.findByUserId(user.get().getId());
+        List<Cart> cartItems = cartRepository.findByUserIdAndIdIn(user.get().getId(), request.getCartIds());
         if (cartItems.isEmpty()) {
             return APIResponse.builder()
                     .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Cart is empty")
+                    .message("Cart is empty or invalid cart IDs")
                     .build();
         }
+
 
         // Create order
         Order order = new Order();
@@ -156,10 +160,9 @@ public class OrderService implements IOrderService {
         order.setOrderCode(generateUniqueOrderCode());
         order.setDeliveryAddress(request.getDeliveryAddress());
         order.setDeliveryPhone(request.getDeliveryPhone());
-        order.setStatus("PENDING");
+        order.setStatus("PROCESSING");
+        order.setTotalAmount(Double.valueOf(request.getAmount()));
         orderRepository.save(order);
-
-        double totalAmount = 0;
 
         for (Cart cartItem : cartItems) {
             // Check if product variant exists
@@ -197,25 +200,64 @@ public class OrderService implements IOrderService {
             orderDetail.setOrder(order);
             orderDetail.setProduct(productVariant.getProduct());
             orderDetail.setQuantity(cartItem.getQuantity());
-            orderDetail.setTotalPrice(productVariant.getPrice() * cartItem.getQuantity());
+            orderDetail.setTotalPrice(Double.valueOf(request.getAmount()));
             orderDetail.setSize(productVariant.getSize());
             orderDetail.setColor(productVariant.getColor());
-            orderDetail.setStatus("PENDING");
             orderDetailRepository.save(orderDetail);
-
-            totalAmount += orderDetail.getTotalPrice();
         }
-
-        // Update order total amount
-        order.setTotalAmount(totalAmount);
-        orderRepository.save(order);
-
         // Clear cart
         cartRepository.deleteAll(cartItems);
 
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
                 .message("Order created successfully from cart")
+                .build();
+    }
+
+    @Override
+    public APIResponse getHistoryOrder(String token) {
+        String identifier = jwtUtils.getUserFromToken(token);
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
+        }
+        if (user.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("User not found")
+                    .build();
+        }
+        List<Order> orders = orderRepository.findByUser(user.get());
+        Optional<User> finalUser = user;
+        List<OrderHistoryResponse> orderHistoryResponses = orders.stream()
+                .map(order -> OrderHistoryResponse.builder()
+                        .orderCode(order.getOrderCode())
+                        .userName(finalUser.get().getFullName())
+                        .orderDate(order.getCreatedAt())
+                        .status(order.getStatus())
+                        .deliveryAddress(Optional.ofNullable(order.getDeliveryAddress()).orElse("N/A"))
+                        .deliveryPhone(Optional.ofNullable(order.getDeliveryPhone()).orElse("N/A"))
+                        .totalAmount(order.getTotalAmount())
+                        .orderDetails(order.getOrderDetails().stream()
+                                .map(orderDetail -> OrderDetailResponse.builder()
+                                        .productName(orderDetail.getProduct().getProductName())
+                                        .imgUrl(Optional.ofNullable(orderDetail.getProduct().getMainImage()).map(Image::getUrl).orElse("N/A"))
+                                        .quantity(orderDetail.getQuantity())
+                                        .totalPrice(orderDetail.getTotalPrice())
+                                        .size(Optional.ofNullable(orderDetail.getSize()).map(Size::getName).orElse("N/A"))
+                                        .color(Optional.ofNullable(orderDetail.getColor()).map(Color::getColor).orElse("N/A"))
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build())
+                .collect(Collectors.toList());
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Order history retrieved successfully")
+                .data(orderHistoryResponses)
                 .build();
     }
 

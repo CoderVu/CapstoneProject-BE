@@ -11,10 +11,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderRequest {
+public class PaymentRequest {
     private Long amount;
     private String orderId;
-    private List<Long> cartIds;
+    private List<String> cartIds;
     private String productId;
     private Integer quantity;
     private String size;

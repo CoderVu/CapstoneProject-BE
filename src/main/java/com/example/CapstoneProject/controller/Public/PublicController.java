@@ -224,4 +224,9 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), users);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/images")
+    public ResponseEntity<APIResponse> getAllImages() {
+        APIResponse response = productService.getAllImages();
+        return ResponseEntity.ok(response);
+    }
 }

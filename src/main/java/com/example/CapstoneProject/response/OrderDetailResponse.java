@@ -1,19 +1,19 @@
 package com.example.CapstoneProject.response;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class ImageResponse {
-    private String id;
-
-    private String path;
+public class OrderDetailResponse {
+    private String productName;
+    private String imgUrl;
+    private int quantity;
+    private double totalPrice;
+    private String size;
     private String color;
 }
-

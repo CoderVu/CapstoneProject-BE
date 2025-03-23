@@ -1,10 +1,14 @@
 package com.example.CapstoneProject.service.Interface;
 
-import com.example.CapstoneProject.request.OrderRequest;
+import com.example.CapstoneProject.request.PaymentRequest;
 import com.example.CapstoneProject.response.APIResponse;
 
 public interface IOrderService {
-    APIResponse createOrderNow(OrderRequest request);
+    APIResponse createOrderNow(PaymentRequest request);
 
-    APIResponse createOrderFromCart(OrderRequest request);
+    APIResponse createOrderFromCart(PaymentRequest request);
+
+    String generateUniqueOrderCode();
+
+    APIResponse getHistoryOrder(String token);
 }
