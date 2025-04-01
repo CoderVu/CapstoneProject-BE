@@ -47,4 +47,8 @@ public interface IProductService {
     APIResponse getColorByProductId(String productId);
 
     APIResponse getAllImages();
+
+
+
+    PaginatedResponse<ProductResponse> getProductByImgUrl(String imgUrl, Pageable pageable);
 }

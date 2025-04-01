@@ -229,4 +229,13 @@ public class PublicController {
         APIResponse response = productService.getAllImages();
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/products/images")
+    public ResponseEntity<APIResponse> getProductsByImgUrls(@RequestParam String imgUrls,
+                                                            @RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "30") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedResponse<ProductResponse> productResponses = productService.getProductByImgUrl(imgUrls, pageable);
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
+        return ResponseEntity.ok(response);
+    }
 }

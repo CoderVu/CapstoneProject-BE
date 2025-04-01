@@ -13,7 +13,8 @@ import java.util.List;
 @Builder
 public class RateResponse {
     private String id;
-    private String userId;
+    private String userFullName;
+    private String avatar;
     private String productId;
     private Double rate;
     private String comment;

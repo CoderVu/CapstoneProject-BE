@@ -26,4 +26,26 @@ public class ColorController {
                     .body(new APIResponse(Code.CONFLICT.getCode(), Code.CONFLICT.getMessage(), ""));
         }
     }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<APIResponse> updateSize(@PathVariable String id, @RequestBody ColorRequest request) {
+        boolean isUpdated = colorService.updateColor(id, request);
+        if (isUpdated) {
+            return ResponseEntity.status(Code.OK.getCode())
+                    .body(new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), ""));
+        } else {
+            return ResponseEntity.status(Code.NOT_FOUND.getCode())
+                    .body(new APIResponse(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), ""));
+        }
+    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse> deleteSize(@PathVariable String id) {
+        boolean isDeleted = colorService.deleteColor(id);
+        if (isDeleted) {
+            return ResponseEntity.status(Code.OK.getCode())
+                    .body(new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), ""));
+        } else {
+            return ResponseEntity.status(Code.NOT_FOUND.getCode())
+                    .body(new APIResponse(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), ""));
+        }
+    }
 }

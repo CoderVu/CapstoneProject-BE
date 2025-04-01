@@ -567,6 +567,21 @@ public class ProductService implements IProductService {
                 .data(imageResponses)
                 .build();
     }
-
+    @Override
+    public PaginatedResponse<ProductResponse> getProductByImgUrl(String imgUrl, Pageable pageable) {
+        List<Image> images = imageRepository.findByImageUrl(imgUrl);
+        if (images.isEmpty()) {
+            return new PaginatedResponse<>(Collections.emptyList(), 0, 0, pageable.getPageNumber(), pageable.getPageSize());
+        }
+        Product product = images.get(0).getProduct();
+        List<ProductResponse> productResponses = Collections.singletonList(productMapper.toProductResponse(product));
+        return new PaginatedResponse<>(
+                productResponses,
+                1,
+                1,
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
+    }
 
 }

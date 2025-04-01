@@ -26,4 +26,21 @@ public class SizeController {
                     .body(new APIResponse(Code.CONFLICT.getCode(), Code.CONFLICT.getMessage(), ""));
         }
     }
+    @PutMapping(value = "/update/{id}", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<APIResponse> updateSize(@PathVariable String id, @RequestBody SizeRequest request) {
+        boolean isUpdated = sizeService.updateSize(id, request);
+        if (isUpdated) {
+            return ResponseEntity.status(Code.OK.getCode())
+                    .body(new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), ""));
+        } else {
+            return ResponseEntity.status(Code.CONFLICT.getCode())
+                    .body(new APIResponse(Code.CONFLICT.getCode(), Code.CONFLICT.getMessage(), ""));
+        }
+    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<APIResponse> deleteSize(@PathVariable String id) {
+        sizeService.deleteSize(id);
+        return ResponseEntity.status(Code.OK.getCode())
+                .body(new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), ""));
+    }
 }

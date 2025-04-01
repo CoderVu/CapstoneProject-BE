@@ -36,7 +36,7 @@ public class Product {
     private List<Image> images = new ArrayList<>();
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rate> rates = new ArrayList<>();
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product",  cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants = new ArrayList<>();
     private Boolean newProduct = (Boolean) false;
     @OneToOne(cascade = CascadeType.ALL)

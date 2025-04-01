@@ -9,4 +9,8 @@ public interface IColorService {
     List<ColorResponse> getAllColor();
 
     boolean addColor(ColorRequest request);
+
+    boolean updateColor(String id, ColorRequest request);
+
+    boolean deleteColor(String id);
 }

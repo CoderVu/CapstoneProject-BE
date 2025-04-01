@@ -30,11 +30,30 @@ public List<SizeResponse> getAllSizes() {
 
     @Override
     public boolean addSize(SizeRequest request) {
-        if (sizeRepository.findByName(request.getSize()) != null) {
+        if (sizeRepository.findByName(request.getName()) != null) {
             return false;
         }
         Size size = SizeMapper.toSize(request);
         sizeRepository.save(size);
+        return true;
+    }
+    @Override
+    public boolean updateSize(String id, SizeRequest request) {
+        Size size = sizeRepository.findById(id).orElse(null);
+        if (size == null) {
+            return false;
+        }
+        size.setName(request.getName());
+        sizeRepository.save(size);
+        return true;
+    }
+    @Override
+    public boolean deleteSize(String id) {
+        Size size = sizeRepository.findById(id).orElse(null);
+        if (size == null) {
+            return false;
+        }
+        sizeRepository.delete(size);
         return true;
     }
 }

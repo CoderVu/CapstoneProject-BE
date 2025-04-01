@@ -126,22 +126,26 @@ public class RateService implements IRateService {
                     pageable.getPageSize()
             );
         }
-
         List<RateResponse> rateResponses = rates.stream()
-                .map(rate -> RateResponse.builder()
-                        .id(rate.getId())
-                        .userId(rate.getUserId())
-                        .productId(rate.getProduct().getId())
-                        .rate(rate.getRate())
-                        .comment(rate.getComment())
-                        .createdAt(rate.getCreatedAt().toString())
-                        .updatedAt(rate.getUpdatedAt() != null ? rate.getUpdatedAt().toString() : null)
-                        .imageRatings(rate.getImageRatings().stream()
-                                .map(ImageRate::getUrl)
-                                .collect(Collectors.toList()))
-                        .build())
+                .map(rate -> {
+                    Optional<User> user = userRepository.findById(rate.getUserId());
+                    String userFullName = user.map(User::getFullName).orElse(null);
+                    String avatar = user.map(User::getAvatar).orElse(null);
+                    return RateResponse.builder()
+                            .id(rate.getId())
+                            .userFullName(userFullName)
+                            .avatar(avatar)
+                            .productId(rate.getProduct().getId())
+                            .rate(rate.getRate())
+                            .comment(rate.getComment())
+                            .createdAt(rate.getCreatedAt().toString())
+                            .updatedAt(rate.getUpdatedAt() != null ? rate.getUpdatedAt().toString() : null)
+                            .imageRatings(rate.getImageRatings().stream()
+                                    .map(ImageRate::getUrl)
+                                    .collect(Collectors.toList()))
+                            .build();
+                })
                 .collect(Collectors.toList());
-
         return new PaginatedResponse<>(
                 rateResponses,
                 rates.getTotalPages(),

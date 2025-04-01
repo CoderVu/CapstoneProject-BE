@@ -6,7 +6,7 @@ import com.example.CapstoneProject.model.Size;
 public class SizeMapper {
     public static Size toSize(SizeRequest sizeRequest) {
        Size size = new Size();
-       size.setName(sizeRequest.getSize());
+       size.setName(sizeRequest.getName());
        return size;
     }
 }

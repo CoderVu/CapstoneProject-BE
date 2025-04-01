@@ -54,8 +54,10 @@ public class ProductMapper {
                 .totalRate(totalRate)
                 .build();
         Integer discountPrice = 80;
+        String type = "shose";
         return ProductResponse.builder()
                 .id(product.getId())
+                .type(type)
                 .productName(product.getProductName())
                 .description(product.getDescription())
                 .price(product.getPrice())

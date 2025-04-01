@@ -13,6 +13,7 @@ import java.util.List;
 @Builder
 public class ProductResponse {
     private String id;
+    private String type;
     private String productName;
     private String description;
     private Integer price;

@@ -7,16 +7,12 @@ import com.example.CapstoneProject.response.CategoryResponse;
 
 public class CategoryMapper {
 
-    public static Category toCategory(CategoryRequest request) {
-        Category category = new Category();
-        category.setName(request.getName());
-        return category;
-    }
-
     public static CategoryResponse toCategoryResponse(Category categories) {
         return CategoryResponse.builder()
                 .id(categories.getId())
                 .name(categories.getName())
+                .imageUrl(categories.getImageUrl())
+                .description(categories.getDescription())
                 .build();
     }
 }

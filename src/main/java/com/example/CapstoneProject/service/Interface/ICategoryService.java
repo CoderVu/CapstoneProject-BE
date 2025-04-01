@@ -7,7 +7,7 @@ import com.example.CapstoneProject.response.CategoryResponse;
 import java.util.List;
 
 public interface ICategoryService {
-    boolean addCategory(CategoryRequest request);
+    APIResponse addCategory(CategoryRequest request);
 
     APIResponse updateCategory(String id, CategoryRequest request);
 

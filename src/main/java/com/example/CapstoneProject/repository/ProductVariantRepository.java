@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, String> {
@@ -16,4 +17,6 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     @Query("SELECT pv FROM ProductVariant pv WHERE pv.product.id =:productId AND pv.size.sizeId =:sizeId AND pv.color.colorId =:colorId")
     ProductVariant findByProductAndSizeAndColor(@Param("productId") String productId, @Param("sizeId") String sizeId, @Param("colorId") String colorId);
+    @Query("SELECT pv FROM ProductVariant pv WHERE pv.color.colorId = :colorId")
+    List<ProductVariant> findByColorId(@Param("colorId") String colorId);
 }

@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class SizeRequest {
-    private String size;
+    private String name;
 }
