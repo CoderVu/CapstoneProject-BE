@@ -7,11 +7,13 @@ import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.OrderDetailResponse;
 import com.example.CapstoneProject.response.OrderHistoryResponse;
+import com.example.CapstoneProject.response.PaginatedResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.service.Interface.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -258,6 +260,45 @@ public class OrderService implements IOrderService {
                 .statusCode(Code.OK.getCode())
                 .message("Order history retrieved successfully")
                 .data(orderHistoryResponses)
+                .build();
+    }
+    @Override
+    public APIResponse getAllOrder(Pageable pageable) {
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+        List<OrderHistoryResponse> orderHistoryResponses = orderPage.getContent().stream()
+                .map(order -> OrderHistoryResponse.builder()
+                        .orderCode(order.getOrderCode())
+                        .userName(order.getUser().getFullName())
+                        .orderDate(order.getCreatedAt())
+                        .status(order.getStatus())
+                        .deliveryAddress(Optional.ofNullable(order.getDeliveryAddress()).orElse("N/A"))
+                        .deliveryPhone(Optional.ofNullable(order.getDeliveryPhone()).orElse("N/A"))
+                        .totalAmount(order.getTotalAmount())
+                        .orderDetails(order.getOrderDetails().stream()
+                                .map(orderDetail -> OrderDetailResponse.builder()
+                                        .productName(orderDetail.getProduct().getProductName())
+                                        .imgUrl(Optional.ofNullable(orderDetail.getProduct().getMainImage()).map(Image::getUrl).orElse("N/A"))
+                                        .quantity(orderDetail.getQuantity())
+                                        .totalPrice(orderDetail.getTotalPrice())
+                                        .size(Optional.ofNullable(orderDetail.getSize()).map(Size::getName).orElse("N/A"))
+                                        .color(Optional.ofNullable(orderDetail.getColor()).map(Color::getColor).orElse("N/A"))
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build())
+                .collect(Collectors.toList());
+
+        PaginatedResponse<OrderHistoryResponse> paginatedResponse = new PaginatedResponse<>(
+                orderHistoryResponses,
+                orderPage.getTotalPages(),
+                orderPage.getTotalElements(),
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Order history retrieved successfully")
+                .data(paginatedResponse)
                 .build();
     }
 
