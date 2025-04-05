@@ -1,10 +1,12 @@
 package com.example.CapstoneProject.controller.User;
 
 import com.example.CapstoneProject.StatusCode.Code;
+import com.example.CapstoneProject.request.FavoriteRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.JwtResponse;
 import com.example.CapstoneProject.response.UserResponse;
 import com.example.CapstoneProject.service.Interface.IAuthService;
+import com.example.CapstoneProject.service.Interface.IFavoriteService;
 import com.example.CapstoneProject.service.Interface.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,9 @@ public class UserController {
 
     @Autowired
     private IAuthService authService;
+    
+    @Autowired
+    private IFavoriteService favoriteService;
 
     @GetMapping("/info/{token}")
     public ResponseEntity<APIResponse> getUserInfo(@PathVariable String token) {
@@ -31,7 +36,6 @@ public class UserController {
         return ResponseEntity.ok(APIResponse.success(HttpStatus.OK.value(), "User info retrieved", jwtResponse));
     }
 
-
     @PostMapping("/logout")
     public ResponseEntity<APIResponse> logoutUser(@RequestBody String token) {
         APIResponse success = authService.logout(token);
@@ -42,5 +46,39 @@ public class UserController {
         return ResponseEntity.ok(APIResponse.success(HttpStatus.OK.value(), "User logged out", success));
     }
 
+    @PostMapping("/favorite")
+    public ResponseEntity<APIResponse> addFavorite(@RequestHeader("Authorization") String token, @RequestParam("productId") String productId) {
+        String newToken = token.substring(7);
+        FavoriteRequest request = new FavoriteRequest();
+        request.setToken(newToken);
+        request.setProductId(productId);
+        APIResponse response = favoriteService.addFavorite(request);
+        if (response.getStatusCode() == Code.NOT_FOUND.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else if (response.getStatusCode() == Code.CONFLICT.getCode()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else if (response.getStatusCode() == Code.BAD_REQUEST.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+    @DeleteMapping("/favorite")
+    public ResponseEntity<APIResponse> removeFavorite(@RequestHeader("Authorization") String token, @RequestParam("productId") String productId) {
+        String newToken = token.substring(7);
+        APIResponse response = favoriteService.removeFavorites(newToken, productId);
+        if (response.getStatusCode() == Code.NOT_FOUND.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/favorite")
+    public ResponseEntity<APIResponse> getAllFavorites(@RequestHeader("Authorization") String token) {
+        String newToken = token.substring(7);
+        APIResponse response = favoriteService.getAllFavorites(newToken);
+        if (response.getStatusCode() == Code.NOT_FOUND.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
 
 }

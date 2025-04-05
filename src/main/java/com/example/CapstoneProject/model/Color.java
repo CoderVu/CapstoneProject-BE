@@ -4,7 +4,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.Builder;
 import lombok.Data;
 
 @Data
@@ -15,4 +14,5 @@ public class Color {
     private String colorId;
     private String color;
     private String colorCode;
+    private String status;
 }

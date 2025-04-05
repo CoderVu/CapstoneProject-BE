@@ -16,8 +16,8 @@ public class Product {
     private Boolean onSale = (Boolean) false;
     private Boolean bestSeller = (Boolean) false;
     private String description;
-    private Integer price;
-    private Integer discountPrice;
+    private Double price;
+    private Double discountPrice;
     private String gender;
     @ManyToOne()
     @JoinColumn(name = "category_id")

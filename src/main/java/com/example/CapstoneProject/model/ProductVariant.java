@@ -24,4 +24,5 @@ public class ProductVariant {
     private Color color;
     private Integer quantity;
     private Double price;
+    private String status;
 }

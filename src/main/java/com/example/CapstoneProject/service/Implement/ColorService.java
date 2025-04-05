@@ -56,8 +56,12 @@ public class ColorService implements IColorService {
             return false;
         }
         List<ProductVariant> variants = productVariantRepository.findByColorId(id);
-        productVariantRepository.deleteAll(variants);
-        colorRepository.delete(color);
+        for (ProductVariant variant : variants) {
+            variant.setStatus("UNAVAILABLE");
+            productVariantRepository.save(variant);
+        }
+        color.setStatus("UNAVAILABLE");
+        colorRepository.save(color);
         return true;
     }
 }

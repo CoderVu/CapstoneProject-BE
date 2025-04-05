@@ -15,8 +15,8 @@ import java.util.Map;
 public class ProductRequest {
     private String productName;
     private String description;
-    private Integer price;
-    private Integer discountPrice;
+    private Double price;
+    private Double discountPrice;
     private String categoryName;
     private String gender;
     private Boolean onSale;

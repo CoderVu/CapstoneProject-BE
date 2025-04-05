@@ -16,6 +16,7 @@ public class ColorMapper {
                 .id(color.getColorId())
                 .color(color.getColor())
                 .colorCode(color.getColorCode())
+                .status(color.getStatus())
                 .build();
     }
 }

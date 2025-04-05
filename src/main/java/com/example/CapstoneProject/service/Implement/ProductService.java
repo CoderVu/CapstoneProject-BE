@@ -214,6 +214,7 @@ public class ProductService implements IProductService {
                 newVariant.setColor(color);
                 newVariant.setQuantity(variantRequest.getQuantity());
                 newVariant.setPrice(variantRequest.getPrice());
+                newVariant.setStatus("AVAILABLE");
                 newVariant.setProduct(product);
                 product.getVariants().add(newVariant);
             }

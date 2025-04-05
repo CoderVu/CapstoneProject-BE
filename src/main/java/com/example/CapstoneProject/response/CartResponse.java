@@ -22,7 +22,9 @@ public class CartResponse {
     private Double unitPrice;
     private Double totalPrice;
     private String size;
+    private String statusSize;
     private String color;
+    private String statusColor;
     private String brand;
     private String categoryName;
     private String status;

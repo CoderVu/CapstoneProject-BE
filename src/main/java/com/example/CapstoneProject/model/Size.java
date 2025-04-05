@@ -13,4 +13,5 @@ public class Size {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String sizeId;
     private String name;
+    private String statusSize;
 }
