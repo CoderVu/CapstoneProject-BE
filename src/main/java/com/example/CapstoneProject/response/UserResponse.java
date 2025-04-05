@@ -1,6 +1,6 @@
 package com.example.CapstoneProject.response;
 
-import com.example.CapstoneProject.model.User;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,5 +18,6 @@ public class UserResponse {
     private LocalDateTime updatedAt;
     private String methodLogin;
     private RoleResponse role;
+    private List<AddressResponse> addressList;
 
 }
