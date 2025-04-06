@@ -3,10 +3,12 @@ package com.example.CapstoneProject.controller.User;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.request.AddressRequest;
 import com.example.CapstoneProject.request.FavoriteRequest;
+import com.example.CapstoneProject.request.UserRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.JwtResponse;
 import com.example.CapstoneProject.response.UserResponse;
 import com.example.CapstoneProject.service.Interface.IAuthService;
+import com.example.CapstoneProject.service.Interface.IDiscountCodeService;
 import com.example.CapstoneProject.service.Interface.IFavoriteService;
 import com.example.CapstoneProject.service.Interface.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -29,6 +32,8 @@ public class UserController {
 
     @Autowired
     private IFavoriteService favoriteService;
+    @Autowired
+    private IDiscountCodeService discountCodeService;
 
     @GetMapping("/info/{token}")
     public ResponseEntity<APIResponse> getUserInfo(@PathVariable String token) {
@@ -63,7 +68,24 @@ public class UserController {
         }
         return ResponseEntity.ok(response);
     }
+    @PutMapping("/info")
+    public ResponseEntity<APIResponse> updateUserInfo(@RequestHeader("Authorization") String token,
+                                                      @RequestParam(value = "fullName", required = false) String fullName,
+                                                      @RequestParam(value = "avatar", required = false) MultipartFile avatar) {
 
+        String newToken = token.substring(7);
+        UserRequest userRequest = UserRequest.builder()
+                .fullName(fullName)
+                .avatar(avatar)
+                .build();
+        APIResponse response = userService.updateUserInfo(newToken, userRequest);
+        if (response.getStatusCode() == Code.NOT_FOUND.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else if (response.getStatusCode() == Code.BAD_REQUEST.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
     @PostMapping("/logout")
     public ResponseEntity<APIResponse> logoutUser(@RequestBody String token) {
         APIResponse success = authService.logout(token);
@@ -123,6 +145,15 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         } else if (response.getStatusCode() == Code.BAD_REQUEST.getCode()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/discount-code")
+    public ResponseEntity<APIResponse> getDiscountCodesByUser(@RequestHeader("Authorization") String token) {
+        String newToken = token.substring(7);
+        APIResponse response = discountCodeService.getDiscountCodesByUser(newToken);
+        if (response.getStatusCode() == Code.NOT_FOUND.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.ok(response);
     }

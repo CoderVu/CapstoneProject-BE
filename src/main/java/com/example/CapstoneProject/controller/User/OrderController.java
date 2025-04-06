@@ -97,7 +97,11 @@ public class OrderController {
                         .body(new APIResponse(400, "Failed to create ZaloPay order", zalopayResponse));
             }
         }
-        return ResponseEntity.ok(new APIResponse(200, "Order created successfully", null));
+        // Xử lý các phương thức thanh toán bằng tiền mặt
+
+        orderService.createOrderFromCart(orderRequest);
+
+            return ResponseEntity.ok(new APIResponse(200, "Order created", null));
     }
 
     @GetMapping("/history")

@@ -5,12 +5,14 @@ import com.example.CapstoneProject.repository.AddressRepository;
 import com.example.CapstoneProject.repository.RateRepository;
 import com.example.CapstoneProject.repository.UserRepository;
 import com.example.CapstoneProject.request.AddressRequest;
+import com.example.CapstoneProject.request.UserRequest;
 import com.example.CapstoneProject.response.JwtResponse;
 import com.example.CapstoneProject.response.RoleResponse;
 import com.example.CapstoneProject.response.UserResponse;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.AddressResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
+import com.example.CapstoneProject.service.ImageUploadService;
 import com.example.CapstoneProject.service.Interface.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.model.Address;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,6 +37,8 @@ public class UserService implements IUserService {
     private RateRepository rateRepository;
     @Autowired
     private AddressRepository addressRepository;
+    @Autowired
+    private ImageUploadService imageUploadService;
 
     @Override
     public JwtResponse getUserInfo(String token) {
@@ -229,6 +235,45 @@ public APIResponse updateAddress(AddressRequest addressRequest) {
                     .message("Address not found")
                     .build();
         }
+    }
+    @Override
+    public APIResponse updateUserInfo(String token, UserRequest userRequest) {
+        String identifier = jwtUtils.getUserFromToken(token);
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
+        }
+        if (user.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("User not found")
+                    .build();
+        }
+        User foundUser = user.get();
+        if (userRequest.getFullName() != null && !userRequest.getFullName().isEmpty()) {
+            foundUser.setFullName(userRequest.getFullName());
+        }
+        if (userRequest.getAvatar()!= null && !userRequest.getAvatar().isEmpty()) {
+            try {
+                String imageUrl = imageUploadService.uploadImage(userRequest.getAvatar());
+                foundUser.setAvatar(imageUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            userRepository.save(foundUser);
+            return APIResponse.builder()
+                    .statusCode(Code.OK.getCode())
+                    .message("Cập nhật ảnh đại diện thành công")
+                    .build();
+        }
+        userRepository.save(foundUser);
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Cập nhật thông tin thành công")
+                .build();
     }
 
 }

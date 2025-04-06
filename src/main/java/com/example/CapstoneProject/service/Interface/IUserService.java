@@ -1,6 +1,7 @@
 package com.example.CapstoneProject.service.Interface;
 
 import com.example.CapstoneProject.request.AddressRequest;
+import com.example.CapstoneProject.request.UserRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.JwtResponse;
 import com.example.CapstoneProject.response.UserResponse;
@@ -19,4 +20,6 @@ public interface IUserService {
 
     APIResponse updateAddress(AddressRequest addressRequest);
     APIResponse deleteAddress(String token, Long addressId);
+
+    APIResponse updateUserInfo(String token, UserRequest userRequest);
 }

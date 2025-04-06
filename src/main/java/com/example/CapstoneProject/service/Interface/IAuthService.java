@@ -9,6 +9,10 @@ public interface IAuthService {
 
     APIResponse registerUser(RegisterRequest registerRequest);
 
+    APIResponse updatePassword(String phoneNumber, String newPassword);
+
+    APIResponse addPhoneNumber(String email, String phoneNumber);
+
     APIResponse logout(String token);
 
     boolean isTokenInvalid(String token);

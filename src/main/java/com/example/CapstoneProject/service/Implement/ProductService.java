@@ -456,7 +456,15 @@ public class ProductService implements IProductService {
         }
         if (productRequest.getImageIds() != null) {
             // Xóa ảnh không còn trong danh sách `imageIds`
-            product.getImages().removeIf(image -> !productRequest.getImageIds().contains(image.getId()));
+            List<Image> imagesToRemove = product.getImages().stream()
+                    .filter(image -> !productRequest.getImageIds().contains(image.getId()))
+                    .collect(Collectors.toList());
+
+            for (Image image : imagesToRemove) {
+
+                imageUploadService.deleteImage(image.getUrl());
+                product.getImages().remove(image);
+            }
         }
 
         // Xử lý thêm ảnh màu mới

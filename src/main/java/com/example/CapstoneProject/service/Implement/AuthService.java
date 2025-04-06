@@ -100,6 +100,26 @@ public class AuthService implements IAuthService {
         userRepository.save(user);
         return APIResponse.success(Code.CREATED.getCode(), "Register successfully", null);
     }
+    @Override
+    public APIResponse updatePassword(String phoneNumber, String newPassword) {
+        Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
+        if (user.isEmpty()) {
+            return APIResponse.error(Code.NOT_FOUND.getCode(), "User not found");
+        }
+        user.get().setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user.get());
+        return APIResponse.success(Code.OK.getCode(), "Update password successfully", null);
+    }
+    @Override
+    public APIResponse addPhoneNumber(String email, String phoneNumber) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return APIResponse.error(Code.NOT_FOUND.getCode(), "User not found");
+        }
+        user.get().setPhoneNumber(phoneNumber);
+        userRepository.save(user.get());
+        return APIResponse.success(Code.OK.getCode(), "Add phone number successfully", null);
+    }
 
     private final Set<String> invalidTokens = new HashSet<>();
 

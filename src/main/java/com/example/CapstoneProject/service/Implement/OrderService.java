@@ -162,13 +162,16 @@ public class OrderService implements IOrderService {
         order.setOrderCode(generateUniqueOrderCode());
         order.setDeliveryAddress(request.getDeliveryAddress());
         order.setDeliveryPhone(request.getDeliveryPhone());
-        order.setStatus("PROCESSING");
+        if (request.getPaymentMethod().equals("ZALOPAY")) {
+            order.setStatus("PAID");
+        } else {
+            order.setStatus("PENDING");
+        }
         order.setTotalAmount(Double.valueOf(request.getAmount()));
         orderRepository.save(order);
 
         for (Cart cartItem : cartItems) {
             // Check if product variant exists
-
             Optional<ProductVariant> productVariantOpt = productVariantRepository
                     .findByProductIdAndSizeIdAndColorId(
                             cartItem.getProductVariant().getProduct().getId(),

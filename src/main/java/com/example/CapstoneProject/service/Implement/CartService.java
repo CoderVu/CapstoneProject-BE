@@ -138,6 +138,9 @@ public class CartService implements ICartService {
             }
             cartEntity.getProductVariant().setSize(sizeEntity);
         }
+        if (cartEntity.getProductVariant().getQuantity() < cartEntity.getQuantity()) {
+            return new APIResponse(404, "Số lượng sản phẩm không đủ", false);
+        }
 
         cartRepository.save(cartEntity);
         return APIResponse.builder()
@@ -213,6 +216,7 @@ public class CartService implements ICartService {
                             .statusSize(cart.getProductVariant().getSize() != null ? cart.getProductVariant().getSize().getStatusSize() : null)
                             .unitPrice(cart.getProductVariant() != null ? cart.getProductVariant().getPrice() : null)
                             .quantity(cart.getQuantity())
+                            .statusQuantity(cart.getProductVariant().getQuantity() == 0 ? "UNAVAILABLE" : "AVAILABLE")
                             .totalPrice(cart.getTotalPrice())
                             .discountPrice(product.getDiscountPrice() != null ? product.getDiscountPrice() : null)
                             .status(cart.getStatus())

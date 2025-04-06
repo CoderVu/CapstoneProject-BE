@@ -4,7 +4,9 @@ import com.example.CapstoneProject.request.BrandRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.service.Implement.BrandService;
 import com.example.CapstoneProject.StatusCode.Code;
+import com.example.CapstoneProject.service.Interface.IBrandService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +15,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/admin/brands")
 @RequiredArgsConstructor
 public class BrandController {
-    private final BrandService brandService;
+    @Autowired
+    private IBrandService brandService;
 
     @PostMapping(value = "/add", consumes = "application/json", produces = "application/json")
     public ResponseEntity<APIResponse> addBrand(@RequestBody BrandRequest request) {

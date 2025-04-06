@@ -35,7 +35,7 @@ public class OrdersController {
     private IOrderService orderService;
 
     @GetMapping("/get-all")
-    public ResponseEntity<APIResponse> getAllOrder(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<APIResponse> getAllOrder(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "30") int size) {
         Pageable pageable = PageRequest.of(page, size);
         APIResponse response = orderService.getAllOrder(pageable);
         return ResponseEntity.ok(response);
