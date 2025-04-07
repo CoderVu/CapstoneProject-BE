@@ -12,6 +12,8 @@ import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.service.Interface.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -267,7 +269,8 @@ public class OrderService implements IOrderService {
     }
     @Override
     public APIResponse getAllOrder(Pageable pageable) {
-        Page<Order> orderPage = orderRepository.findAll(pageable);
+        Pageable sortedByCreatedAtDesc = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("createdAt").descending());
+        Page<Order> orderPage = orderRepository.findAll(sortedByCreatedAtDesc);
         List<OrderHistoryResponse> orderHistoryResponses = orderPage.getContent().stream()
                 .map(order -> OrderHistoryResponse.builder()
                         .orderCode(order.getOrderCode())
@@ -302,6 +305,26 @@ public class OrderService implements IOrderService {
                 .statusCode(Code.OK.getCode())
                 .message("Order history retrieved successfully")
                 .data(paginatedResponse)
+                .build();
+    }
+
+    @Override
+    public APIResponse updateOrderStatus(String orderId, String status) {
+        Optional<Order> orderOpt = orderRepository.findByOrderCode(orderId);
+        if (orderOpt.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Order not found")
+                    .build();
+        }
+
+        Order order = orderOpt.get();
+        order.setStatus(status);
+        orderRepository.save(order);
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Cập nhật trạng thái đơn hàng thành công")
                 .build();
     }
 

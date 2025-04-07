@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, String> {
     boolean existsByOrderCode(String orderCode);
@@ -18,4 +19,6 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     void updateFeedbackStatus(String id);
 
     List<Order> findByUser(User user);
+    @Query("SELECT o FROM Order o WHERE o.orderCode = :orderId")
+    Optional<Order> findByOrderCode(String orderId);
 }

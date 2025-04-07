@@ -14,4 +14,6 @@ public interface IOrderService {
     APIResponse getHistoryOrder(String token);
 
     APIResponse getAllOrder(Pageable pageable);
+
+    APIResponse updateOrderStatus(String orderId, String status);
 }

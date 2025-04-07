@@ -2,7 +2,6 @@ package com.example.CapstoneProject.repository;
 
 import com.example.CapstoneProject.model.Collection;
 import com.example.CapstoneProject.model.Product;
-import com.example.CapstoneProject.model.ProductVariant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,4 +24,9 @@ public interface ProductRepository extends JpaRepository<Product, String>, JpaSp
 
     @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId AND p.id != :productId")
     List<Product> findRelatedProducts(@Param("categoryId") String categoryId, @Param("productId") String productId, Pageable pageable);
+
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN p.additionalImages ai " +
+            "WHERE p.mainImage.url IN :imgUrls OR ai.url IN :imgUrls")
+    Page<Product> findByImgUrls(@Param("imgUrls") List<String> imgUrls, Pageable pageable);
+
 }

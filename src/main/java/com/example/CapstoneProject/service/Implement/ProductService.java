@@ -393,6 +393,22 @@ public class ProductService implements IProductService {
                 products.getSize()
         );
     }
+    @Override
+    public PaginatedResponse<ProductResponse> SearchProducts(Pageable pageable, String keyword) {
+        Specification<Product> spec = Specification.where(ProductSpecification.hasKeyword(keyword));
+        Page<Product> products = productRepository.findAll(spec, pageable);
+        List<ProductResponse> productResponses = products.stream()
+                .map(productMapper::toProductResponse)
+                .collect(Collectors.toList());
+
+        return new PaginatedResponse<>(
+                productResponses,
+                products.getTotalPages(),
+                products.getTotalElements(),
+                products.getNumber(),
+                products.getSize()
+        );
+    }
 
     @Override
     public APIResponse updateProduct(String productId, ProductRequest productRequest, Map<String, MultipartFile[]> colorImages) {
@@ -577,20 +593,25 @@ public class ProductService implements IProductService {
                 .build();
     }
     @Override
-    public PaginatedResponse<ProductResponse> getProductByImgUrl(String imgUrl, Pageable pageable) {
-        List<Image> images = imageRepository.findByImageUrl(imgUrl);
-        if (images.isEmpty()) {
-            return new PaginatedResponse<>(Collections.emptyList(), 0, 0, pageable.getPageNumber(), pageable.getPageSize());
-        }
-        Product product = images.get(0).getProduct();
-        List<ProductResponse> productResponses = Collections.singletonList(productMapper.toProductResponse(product));
+    public PaginatedResponse<ProductResponse> getProductByImgUrl(List<String> imgUrls, Pageable pageable) {
+        String url = "https://dbimage.blob.core.windows.net/images/";
+        List<String> fullImgUrls = imgUrls.stream()
+                .map(imgUrl -> url + imgUrl)
+                .collect(Collectors.toList());
+        Page<Product> productPage = productRepository.findByImgUrls(fullImgUrls, pageable);
+        List<ProductResponse> productResponses = productPage.getContent().stream()
+                .map(productMapper::toProductResponse)
+                .collect(Collectors.toList());
+
         return new PaginatedResponse<>(
                 productResponses,
-                1,
-                1,
+                productPage.getTotalPages(),
+                productPage.getTotalElements(),
                 pageable.getPageNumber(),
                 pageable.getPageSize()
         );
     }
+
+
 
 }

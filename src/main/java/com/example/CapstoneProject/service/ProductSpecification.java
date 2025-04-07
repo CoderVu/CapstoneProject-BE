@@ -28,4 +28,16 @@ public class ProductSpecification {
     public static Specification<Product> hasSize(String size) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.join("variants").join("size").get("name"), size);
     }
+
+    public static Specification<Product> hasKeyword(String keyword) {
+        return (root, query, criteriaBuilder) -> {
+            String likePattern = "%" + keyword + "%";
+            return criteriaBuilder.or(
+                    criteriaBuilder.like(root.get("productName"), likePattern),
+                    criteriaBuilder.like(root.get("description"), likePattern),
+                    criteriaBuilder.like(root.join("variants").join("color").get("color"), likePattern),
+                    criteriaBuilder.like(root.join("variants").join("size").get("name"), likePattern)
+            );
+        };
+    }
 }

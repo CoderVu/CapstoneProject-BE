@@ -25,6 +25,8 @@ public interface IProductService {
     PaginatedResponse<ProductResponse> getAllProduct(Pageable pageable);
 
 
+    PaginatedResponse<ProductResponse> SearchProducts(Pageable pageable, String keyword);
+
     APIResponse updateProduct(String productId, ProductRequest productRequest, Map<String, MultipartFile[]> colorImages);
 
     String extractColorFromFileName(String fileName, Map<String, String> colorMap);
@@ -48,7 +50,5 @@ public interface IProductService {
 
     APIResponse getAllImages();
 
-
-
-    PaginatedResponse<ProductResponse> getProductByImgUrl(String imgUrl, Pageable pageable);
+    PaginatedResponse<ProductResponse> getProductByImgUrl(List<String> imgUrls, Pageable pageable);
 }

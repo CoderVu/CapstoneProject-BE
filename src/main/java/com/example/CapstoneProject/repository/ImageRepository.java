@@ -13,6 +13,4 @@ public interface ImageRepository extends JpaRepository<Image, String> {
 
     @Query("SELECT i FROM Image i WHERE i.url IN :imgUrls")
     Page<Image> findByImageUrlIn(@Param("imgUrls") List<String> imgUrls, Pageable pageable);
-    @Query("SELECT i FROM Image i WHERE i.url = :imgUrl")
-    List<Image> findByImageUrl(String imgUrl);
 }
