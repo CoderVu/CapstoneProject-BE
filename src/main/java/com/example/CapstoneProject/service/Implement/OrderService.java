@@ -82,12 +82,12 @@ public class OrderService implements IOrderService {
 
         // Kiểm tra ProductVariant (size, color)
         Optional<ProductVariant> productVariantOpt = productVariantRepository
-                .findByProductIdAndSizeIdAndColorId(request.getProductId(), request.getSize(), request.getColor());
+                .findByProductIdAndSizeNameIdAndColorName(request.getProductId(), request.getSize(), request.getColor());
 
         if (productVariantOpt.isEmpty()) {
             return APIResponse.builder()
                     .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Product variant not found")
+                    .message("Product variant not foundd")
                     .build();
         }
 
@@ -112,22 +112,26 @@ public class OrderService implements IOrderService {
         order.setDeliveryAddress(request.getDeliveryAddress());
         order.setDeliveryPhone(request.getDeliveryPhone());
         order.setTotalAmount(Double.valueOf(request.getAmount()));
-        order.setStatus("PENDING");
+        if (request.getPaymentMethod().equals("ZALOPAY")) {
+            order.setStatus("PAID");
+        } else {
+            order.setStatus("PENDING");
+        }
         orderRepository.save(order);
 
         // Tạo chi tiết đơn hàng
         OrderDetail orderDetail = new OrderDetail();
         orderDetail.setOrder(order);
-        orderDetail.setProduct(productOpt.get());
+        orderDetail.setProduct(productVariant.getProduct());
         orderDetail.setQuantity(request.getQuantity());
-        orderDetail.setTotalPrice((double) (productVariant.getPrice() * request.getQuantity()));
-        orderDetail.setSize(sizeRepository.findById(request.getSize()).get());
-        orderDetail.setColor(colorRepository.findById(request.getColor()).get());
+        orderDetail.setTotalPrice(Double.valueOf(request.getAmount()));
+        orderDetail.setSize(productVariant.getSize());
+        orderDetail.setColor(productVariant.getColor());
         orderDetailRepository.save(orderDetail);
 
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
-                .message("Order created successfully")
+                .message("Đặt hàng thành công")
                 .build();
     }
 

@@ -1,6 +1,5 @@
 server:
   port: 8080
-
 spring:
   application:
     name: capstone
@@ -17,10 +16,10 @@ spring:
     mode: HTML
     encoding: UTF-8
   datasource:
-    url: jdbc:mysql://localhost:3306/db_capstone
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://dbcapstone.mysql.database.azure.com:3306/db_capstone}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: 123456789
+    username: ${SPRING_DATASOURCE_USERNAME:mysqladmin}
+    password: ${SPRING_DATASOURCE_PASSWORD:Admin123}
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 10

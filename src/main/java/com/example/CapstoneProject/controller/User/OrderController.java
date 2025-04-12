@@ -38,9 +38,60 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<APIResponse> createOrderNow(@RequestHeader("Authorization") String token, @RequestBody PaymentRequest request) {
+    public ResponseEntity<APIResponse> createOrderNow(@RequestHeader("Authorization") String token, @RequestBody PaymentRequest request) throws IOException {
         String newToken = token.substring(7);
         request.setToken(newToken);
+
+        // Generate order code
+        String orderCode = orderService.generateUniqueOrderCode();
+        request.setOrderId(orderCode);
+        request.setOrderInfo("Payment for order " + orderCode);
+        request.setLang("en");
+        request.setExtraData("additional data");
+        request.setAmount(request.getAmount());
+
+        if ("ZALOPAY".equals(request.getPaymentMethod())) {
+            Map<String, Object> zalopayResponse = paymentService.createOrderZaloPay(request);
+
+            if (Integer.parseInt(zalopayResponse.get("returncode").toString()) == 1) {
+                String appTransId = zalopayResponse.get("apptransid").toString();
+
+                // Create scheduler to check payment status
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                final int[] count = {0};
+
+                scheduler.scheduleAtFixedRate(() -> {
+                    count[0]++;
+                    if (count[0] > 120) { // Stop after 120 attempts (2 minutes)
+                        System.out.println("Payment status check timeout for: " + appTransId);
+                        scheduler.shutdown();
+                        return;
+                    }
+
+                    ResponseEntity<APIResponse> statusResponse = checkPaymentZaloPayStatus(appTransId);
+                    System.out.println("Checking payment status... Attempt " + count[0]);
+                    System.out.println("Payment status response: " + statusResponse);
+
+                    if (statusResponse.getStatusCode() == HttpStatus.OK && statusResponse.getBody() != null) {
+                        APIResponse response = statusResponse.getBody();
+                        Map<String, Object> data = (Map<String, Object>) response.getData();
+
+                        if (Integer.parseInt(data.get("returncode").toString()) == 1) {
+                            System.out.println("Payment successful for: " + appTransId);
+                            orderService.createOrderNow(request);
+                            scheduler.shutdown(); // Stop scheduler after successful payment
+                        }
+                    }
+                }, 0, 1, TimeUnit.SECONDS);
+
+                return ResponseEntity.ok(new APIResponse(200, "ZaloPay order created successfully", zalopayResponse));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new APIResponse(400, "Failed to create ZaloPay order", zalopayResponse));
+            }
+        }
+
+        // Handle other payment methods
         APIResponse response = orderService.createOrderNow(request);
         return ResponseEntity.ok(response);
     }
