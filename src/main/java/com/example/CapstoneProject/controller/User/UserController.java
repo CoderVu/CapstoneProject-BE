@@ -157,4 +157,16 @@ public class UserController {
         }
         return ResponseEntity.ok(response);
     }
+    @PutMapping("/apply-discount-code")
+    public ResponseEntity<APIResponse> applyDiscountCode(@RequestHeader("Authorization") String token,
+            @RequestParam("discountCode") String discountCode) {
+        String newToken = token.substring(7);
+        APIResponse response = discountCodeService.applyDiscountCode(discountCode, newToken );
+        if (response.getStatusCode() == Code.NOT_FOUND.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else if (response.getStatusCode() == Code.BAD_REQUEST.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
 }

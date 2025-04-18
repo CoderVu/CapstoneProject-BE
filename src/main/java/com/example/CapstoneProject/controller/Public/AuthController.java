@@ -54,7 +54,7 @@
                 return;
             }
             // Create redirect URL with token and picture
-            String redirectUrl = String.format("https://polite-plant-004c99b1e.6.azurestaticapps.net/oauth2/callback?token=%s",
+            String redirectUrl = String.format("http://localhost:3000/oauth2/callback?token=%s",
                     jwtResponse.getToken());
             System.out.println("token: " + jwtResponse.getToken());
 

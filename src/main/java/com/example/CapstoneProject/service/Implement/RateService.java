@@ -56,7 +56,7 @@ public class RateService implements IRateService {
                     .message("User not found")
                     .build();
         }
-        Optional<Order> order = orderRepository.findById(request.getOrderId());
+        Optional<Order> order = orderRepository.findByOrderCode(request.getOrderId());
         if (order.isEmpty()) {
             return APIResponse.builder()
                     .statusCode(Code.NOT_FOUND.getCode())

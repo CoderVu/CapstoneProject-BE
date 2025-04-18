@@ -11,9 +11,13 @@ public interface IOrderService {
 
     String generateUniqueOrderCode();
 
+    APIResponse cancelOrder(String token, String orderId);
+
     APIResponse getHistoryOrder(String token);
 
     APIResponse getAllOrder(Pageable pageable);
 
     APIResponse updateOrderStatus(String orderId, String status);
+
+    APIResponse getOrdersWithinLastHour();
 }

@@ -4,10 +4,7 @@ import com.example.CapstoneProject.request.PaymentRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.model.*;
 import com.example.CapstoneProject.repository.*;
-import com.example.CapstoneProject.response.APIResponse;
-import com.example.CapstoneProject.response.OrderDetailResponse;
-import com.example.CapstoneProject.response.OrderHistoryResponse;
-import com.example.CapstoneProject.response.PaginatedResponse;
+import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.service.Interface.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +13,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -224,6 +224,65 @@ public class OrderService implements IOrderService {
                 .message("Order created successfully from cart")
                 .build();
     }
+    @Override
+    public APIResponse cancelOrder(String token, String OrderCode) {
+        String identifier = jwtUtils.getUserFromToken(token);
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
+        }
+        if (user.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("User not found")
+                    .build();
+        }
+        // Retrieve the order by its code
+        Optional<Order> orderOpt = orderRepository.findByOrderCode(OrderCode);
+        if (orderOpt.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("Order not found")
+                    .build();
+        }
+
+        Order order = orderOpt.get();
+
+        // Check if the order is already canceled
+        if ("CANCELED".equals(order.getStatus())) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Order is already canceled")
+                    .build();
+        }
+
+        // Update stock quantity for each product variant in the order
+        List<OrderDetail> orderDetails = order.getOrderDetails();
+        for (OrderDetail orderDetail : orderDetails) {
+            ProductVariant productVariant = productVariantRepository.findByProductIdAndSizeIdAndColorId(
+                    orderDetail.getProduct().getId(),
+                    orderDetail.getSize().getSizeId(),
+                    orderDetail.getColor().getColorId()
+            ).orElse(null);
+
+            if (productVariant != null) {
+                productVariant.setQuantity(productVariant.getQuantity() + orderDetail.getQuantity());
+                productVariantRepository.save(productVariant);
+            }
+        }
+
+        // Mark the order as canceled
+        order.setStatus("CANCELED");
+        orderRepository.save(order);
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Huỷ đơn hàng thành công")
+                .build();
+    }
 
     @Override
     public APIResponse getHistoryOrder(String token) {
@@ -262,6 +321,7 @@ public class OrderService implements IOrderService {
                                         .color(Optional.ofNullable(orderDetail.getColor()).map(Color::getColor).orElse("N/A"))
                                         .build())
                                 .collect(Collectors.toList()))
+                        .isFeedback(order.getFeedback())
                         .build())
                 .collect(Collectors.toList());
 
@@ -331,5 +391,50 @@ public class OrderService implements IOrderService {
                 .message("Cập nhật trạng thái đơn hàng thành công")
                 .build();
     }
+    @Override
+    public APIResponse getOrdersWithinLastHour() {
+        // Lấy các đơn trong vòng 1 giờ gần nhất
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        List<Order> recentOrders = orderRepository.findByCreatedAtAfter(oneHourAgo);
+
+        List<NewOrderResponse> newOrderResponses = recentOrders.stream()
+                .map(order -> NewOrderResponse.builder()
+                        .id(order.getId().toString())
+                        .imageUrl(order.getOrderDetails().get(0).getProduct().getMainImage().getUrl())
+                        .productName(order.getOrderDetails().get(0).getProduct().getProductName())
+                        .productId(order.getOrderDetails().get(0).getProduct().getId().toString())
+                        .orderCode(order.getOrderCode())
+                        .userName(order.getUser().getFullName())
+                        // orderDate giờ là String
+                        .orderDate(formatTime(order.getCreatedAt()))
+                        .build()
+                )
+                .collect(Collectors.toList());
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Orders retrieved successfully")
+                .data(newOrderResponses)
+                .build();
+    }
+
+    /**
+     * Trả về chuỗi “x phút trước”, “x giờ trước” hoặc “x ngày trước”
+     */
+    public static String formatTime(LocalDateTime givenTime) {
+        LocalDateTime now = LocalDateTime.now();
+        long minutesAgo = Duration.between(givenTime, now).toMinutes();
+        long hoursAgo   = Duration.between(givenTime, now).toHours();
+        long daysAgo    = Duration.between(givenTime, now).toDays();
+
+        if (minutesAgo < 60) {
+            return minutesAgo + " phút trước";
+        } else if (hoursAgo < 24) {
+            return hoursAgo + " giờ trước";
+        } else {
+            return daysAgo + " ngày trước";
+        }
+    }
+
 
 }

@@ -13,9 +13,12 @@ import lombok.NoArgsConstructor;
 @Builder
 
 public class NewOrderResponse {
+    private String imageUrl;
     private String id;
     private String orderCode;
     private String userName;
-    private LocalDateTime orderDate;
+    private String productName;
+    private String orderDate;
+    private String productId;
 
 }

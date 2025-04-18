@@ -21,4 +21,5 @@ public class OrderHistoryResponse {
     private String deliveryPhone;
     private double totalAmount;
     private List<OrderDetailResponse> orderDetails;
+    private Boolean isFeedback;
 }

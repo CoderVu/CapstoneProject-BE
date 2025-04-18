@@ -103,7 +103,22 @@ public class DiscountCodeService implements IDiscountCodeService {
         code.setStatus("ASSIGNED");
         discountCodeRepository.save(code);
 
-        return new APIResponse(200, "Discount code applied to user successfully", true);
+        return new APIResponse(200, "Thêm mã giảm giá thành công", null);
+    }
+    @Override
+    public APIResponse applyDiscountCode(String discountCode, String token) {
+        String identifier = jwtUtils.getUserFromToken(token);
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
+        }
+        if (user.isEmpty()) {
+            return new APIResponse(404, "User not found", null);
+        }
+        return applyDiscountCodeToUser(discountCode, user.get().getId());
     }
 
 }

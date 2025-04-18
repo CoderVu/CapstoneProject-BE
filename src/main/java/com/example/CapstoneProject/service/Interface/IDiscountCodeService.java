@@ -12,4 +12,6 @@ public interface IDiscountCodeService {
     APIResponse getDiscountCodesByUser(String token);
 
     APIResponse applyDiscountCodeToUser(String discountCode, String userId);
+
+    APIResponse applyDiscountCode(String discountCode, String token);
 }

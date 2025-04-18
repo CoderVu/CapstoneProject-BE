@@ -162,6 +162,13 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/cancel")
+    public ResponseEntity<APIResponse> cancelOrder(@RequestHeader("Authorization") String token, @RequestParam("orderCode") String orderId) {
+        String newToken = token.substring(7);
+        APIResponse response = orderService.cancelOrder(newToken, orderId);
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/rating")
     public ResponseEntity<APIResponse> rateProduct(

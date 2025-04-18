@@ -44,6 +44,10 @@ public class PublicController {
     private IRateService rateService;
     @Autowired
     private IUserService userService;
+    @Autowired
+    private IOrderService orderService;
+    @Autowired
+    private IDiscountCodeService discountCodeService;
 
     @GetMapping("/products")
     public ResponseEntity<APIResponse> getAllProducts(
@@ -150,19 +154,12 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), userResponse);
         return ResponseEntity.ok(response);
     }
-    
-    @GetMapping("/orders/mock")
-    public ResponseEntity<APIResponse> getMockOrder() {
-        NewOrderResponse mockOrder = NewOrderResponse.builder()
-                .id("12345")
-                .orderCode("ORD-67890")
-                .userName("John Doe")
-                .orderDate(LocalDateTime.now())
-                .build();
-        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), mockOrder);
+
+    @GetMapping("/orders/recent")
+    public ResponseEntity<APIResponse> getRecentOrders() {
+        APIResponse response = orderService.getOrdersWithinLastHour();
         return ResponseEntity.ok(response);
     }
-
     @PostMapping("/products/{id}/view")
     public ResponseEntity<APIResponse> viewProduct(@PathVariable String id, @CookieValue(value = "viewedProducts", defaultValue = "") String viewedProducts, HttpServletResponse response) {
         ProductResponse productResponse = productService.getProductById(id);
@@ -246,5 +243,11 @@ public class PublicController {
         PaginatedResponse<ProductResponse> productResponses = productService.SearchProducts(pageable, keyword);
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-all")
+    public ResponseEntity<APIResponse> getAllDiscountCodes() {
+        APIResponse response = discountCodeService.getAllDiscountCodes();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }
