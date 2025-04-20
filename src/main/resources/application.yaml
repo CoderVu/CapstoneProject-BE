@@ -4,7 +4,7 @@ spring:
   application:
     name: capstone
   profiles:
-    active: dev
+    active: devv
   servlet:
     multipart:
       max-file-size: 50MB
