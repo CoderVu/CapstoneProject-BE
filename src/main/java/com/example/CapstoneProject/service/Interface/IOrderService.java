@@ -20,4 +20,6 @@ public interface IOrderService {
     APIResponse updateOrderStatus(String orderId, String status);
 
     APIResponse getOrdersWithinLastHour();
+
+    APIResponse getOrderStatistics();
 }

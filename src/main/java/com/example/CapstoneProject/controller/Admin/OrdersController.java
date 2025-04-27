@@ -38,5 +38,10 @@ public class OrdersController {
         APIResponse response = orderService.updateOrderStatus(orderId, status);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/order-statistics")
+    public ResponseEntity<APIResponse> getOrderStatistics() {
+        APIResponse response = orderService.getOrderStatistics();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 
 }

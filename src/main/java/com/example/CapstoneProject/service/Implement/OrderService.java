@@ -16,9 +16,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -435,6 +433,38 @@ public class OrderService implements IOrderService {
             return daysAgo + " ngày trước";
         }
     }
+    @Override
+    public APIResponse getOrderStatistics() {
+        // Total orders
+        long totalOrders = orderRepository.count();
+
+        // Total revenue
+        double totalRevenue = orderRepository.findAll().stream()
+                .mapToDouble(Order::getTotalAmount)
+                .sum();
+
+        // Orders by status
+        Map<String, Long> ordersByStatus = orderRepository.findAll().stream()
+                .collect(Collectors.groupingBy(Order::getStatus, Collectors.counting()));
+
+        // Orders by date (grouped by day)
+        Map<String, Long> ordersByDate = orderRepository.findAll().stream()
+                .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate().toString(), Collectors.counting()));
+
+        // Build response
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("totalOrders", totalOrders);
+        statistics.put("totalRevenue", totalRevenue);
+        statistics.put("ordersByStatus", ordersByStatus);
+        statistics.put("ordersByDate", ordersByDate);
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Order statistics retrieved successfully")
+                .data(statistics)
+                .build();
+    }
+
 
 
 }
