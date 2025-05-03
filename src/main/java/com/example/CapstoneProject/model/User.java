@@ -36,6 +36,7 @@ public class User {
     private List<Product> favoriteProducts = new ArrayList<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses = new ArrayList<>();
+    private Boolean Enabled = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @PrePersist

@@ -5,7 +5,7 @@ import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.JwtResponse;
 
 public interface IAuthService {
-    JwtResponse authenticateUser(String username, String password);
+    APIResponse authenticateUser(String username, String password);
 
     APIResponse registerUser(RegisterRequest registerRequest);
 

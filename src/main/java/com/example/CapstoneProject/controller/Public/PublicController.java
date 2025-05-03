@@ -48,6 +48,19 @@ public class PublicController {
     private IOrderService orderService;
     @Autowired
     private IDiscountCodeService discountCodeService;
+    @Autowired
+    private IEmailService emailService;
+
+    @PostMapping("/send-email")
+    public ResponseEntity<APIResponse> sendEmail(@RequestParam String email, @RequestParam String subject, @RequestParam String content) {
+        try {
+            emailService.sendEmail(email, subject, content);
+            return ResponseEntity.ok(new APIResponse(Code.OK.getCode(), "Email sent successfully", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Failed to send email: " + e.getMessage(), null));
+        }
+    }
 
     @GetMapping("/products")
     public ResponseEntity<APIResponse> getAllProducts(

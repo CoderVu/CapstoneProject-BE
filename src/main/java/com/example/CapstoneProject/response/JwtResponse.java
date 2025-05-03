@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 @Builder
 public class JwtResponse {
+    private String message;
     private String id;
     private String email;
     private String fullName;

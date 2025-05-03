@@ -1,5 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
+import com.example.CapstoneProject.model.OTP;
 import com.example.CapstoneProject.request.RegisterRequest;
 import com.example.CapstoneProject.response.JwtResponse;
 import com.example.CapstoneProject.response.APIResponse;
@@ -12,7 +13,11 @@ import com.example.CapstoneProject.response.RoleResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.security.user.ShopUserDetails;
 import com.example.CapstoneProject.service.Interface.IAuthService;
+import com.example.CapstoneProject.service.Interface.IEmailService;
+import com.example.CapstoneProject.service.Interface.IOTPService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +26,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,34 +36,49 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class AuthService implements IAuthService {
-
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtils jwtUtils;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private IEmailService emailService;
+    @Autowired
+    private IOTPService otpService;
 
     @Override
-    public JwtResponse authenticateUser(String username, String password) {
+    public APIResponse authenticateUser(String username, String password) {
         Optional<User> user = userRepository.findByPhoneNumber(username);
         if (user.isEmpty()) {
             user = userRepository.findByEmail(username);
         }
         if (user.isEmpty()) {
-            return null;
+            return APIResponse.builder().statusCode(HttpStatus.UNAUTHORIZED.value())
+                    .message("Tài khoản không tồn tại")
+                    .build();
         }
         if (user.get().getPassword() == null) {
-            return null;
+            return APIResponse.builder().statusCode(HttpStatus.UNAUTHORIZED.value())
+                    .message("Tài khoản này đã được đăng nhập bằng tài khoản Google. Vui lòng sử dụng tài khoản Google để đăng nhập")
+                    .build();
         }
+        if (user.get().getEnabled().equals(false)) {
+            return APIResponse.builder().statusCode(HttpStatus.UNAUTHORIZED.value())
+                    .message("Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản")
+                    .build();
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtTokenForUser(authentication);
-            ShopUserDetails userDetails = (ShopUserDetails) authentication.getPrincipal();
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .toList();
+
             JwtResponse jwtResponse = JwtResponse.builder()
                     .id(user.get().getId().toString())
                     .email(user.get().getEmail())
@@ -71,20 +92,41 @@ public class AuthService implements IAuthService {
                             .name(user.get().getRole().getName())
                             .build())
                     .build();
-            return jwtResponse;
+
+            return APIResponse.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .message("Đang nhập thành công")
+                    .data(jwtResponse)
+                    .build();
         } catch (BadCredentialsException e) {
-            return null;
+            return APIResponse.builder()
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .message("Thông tin đăng nhập không chính xác")
+                    .build();
         }
     }
+
     @Override
     public APIResponse registerUser(RegisterRequest request) {
+        // Validate phone number
+        String phoneRegex = "^[0-9]{10}$";
+        if (!request.getPhoneNumber().matches(phoneRegex)) {
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Invalid phone number format");
+        }
+
+        // Validate email
+        String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"; // Standard email format
+        if (!request.getEmail().matches(emailRegex)) {
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Invalid email format");
+        }
+
+        // Check if phone number or email already exists
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             return APIResponse.error(Code.CONFLICT.getCode(), request.getPhoneNumber() + " already exists");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
             return APIResponse.error(Code.CONFLICT.getCode(), request.getEmail() + " already exists");
         }
-
         User user = new User();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
@@ -97,8 +139,20 @@ public class AuthService implements IAuthService {
             return APIResponse.error(Code.NOT_FOUND.getCode(), "ROLE_USER not found");
         }
         user.setRole(optionalRole.get());
+        user.setEnabled(Boolean.FALSE);
         userRepository.save(user);
-        return APIResponse.success(Code.CREATED.getCode(), "Register successfully", null);
+
+        OTP otp = otpService.createOTP(request.getEmail(), user.getId());
+        String subject = "Sign in to your account";
+        String content = "<h2>Sign in to your account</h2>" +
+                "<p>You requested to sign in to Vu Nguyen Coder.<br>Your one-time code is:</p>" +
+                "<h1 style='font-size:32px; letter-spacing:4px;'>" + otp.getOtp() + "</h1>" +
+                "<p>This code expires in <strong>5 minutes</strong>.</p>" +
+                "<br><p style='font-size:12px; color:#888;'>Email sent by Vu Nguyen Coder</p>" +
+                "<p style='font-size:12px; color:#888;'>If you didn’t request to sign in to Shop, please ignore this email.</p>";
+
+        emailService.sendEmail(request.getEmail(), subject, content);
+        return APIResponse.success(Code.CREATED.getCode(), "Vui lòng kiểm tra email để xác thực tài khoản", null);
     }
     @Override
     public APIResponse updatePassword(String phoneNumber, String newPassword) {
