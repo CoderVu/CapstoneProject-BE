@@ -17,7 +17,6 @@ public class OrderDetail {
     @JoinColumn(name = "product_id")
     private Product product;
     private int quantity;
-    private Double unitPrice;
     private Double totalPrice;
     @ManyToOne
     @JoinColumn(name = "size_id")

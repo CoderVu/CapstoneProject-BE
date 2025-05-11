@@ -21,6 +21,7 @@ public class ProductResponse {
     private String gender;
     private Boolean onSale;
     private Boolean bestSeller;
+    private Integer sold;
     private List<VariantResponse> variants;
     private Integer quantity;
     private String categoryName;

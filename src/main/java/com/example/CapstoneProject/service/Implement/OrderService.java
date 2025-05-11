@@ -1,5 +1,6 @@
 package com.example.CapstoneProject.service.Implement;
 
+import com.example.CapstoneProject.request.AddressRequest;
 import com.example.CapstoneProject.request.PaymentRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.model.*;
@@ -7,6 +8,7 @@ import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.service.Interface.IOrderService;
+import com.example.CapstoneProject.ws.OrderNotificationWebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,8 +16,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +46,9 @@ public class OrderService implements IOrderService {
     private CartRepository cartRepository;
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private OrderNotificationWebSocketHandler orderNotificationWebSocketHandler;
     @Override
     public String generateUniqueOrderCode() {
         Random random = new Random();
@@ -53,7 +60,7 @@ public class OrderService implements IOrderService {
     }
 
     @Override
-    public APIResponse createOrderNow(PaymentRequest request) {
+    public APIResponse createOrderNow(PaymentRequest request) throws IOException {
         String identifier = jwtUtils.getUserFromToken(request.getToken());
         Optional<User> user = Optional.empty();
         if (identifier != null) {
@@ -107,7 +114,18 @@ public class OrderService implements IOrderService {
         Order order = new Order();
         order.setUser(user.get());
         order.setOrderCode(generateUniqueOrderCode());
-        order.setDeliveryAddress(request.getDeliveryAddress());
+
+        AddressRequest addressDTO = request.getAddress();
+        if (addressDTO != null) {
+            String fullAddress = String.format("%s, %s, %s",
+                    addressDTO.getStreet(),
+                    addressDTO.getDistrict(),
+                    addressDTO.getCity());
+            order.setDeliveryAddress(fullAddress);
+        } else {
+            order.setDeliveryAddress(user.get().getAddress());
+        }
+
         order.setDeliveryPhone(request.getDeliveryPhone());
         order.setTotalAmount(Double.valueOf(request.getAmount()));
         if (request.getPaymentMethod().equals("ZALOPAY")) {
@@ -127,6 +145,9 @@ public class OrderService implements IOrderService {
         orderDetail.setColor(productVariant.getColor());
         orderDetailRepository.save(orderDetail);
 
+        // Gửi thông báo đến WebSocket
+        orderNotificationWebSocketHandler.sendOrderNotification(order.getOrderCode());
+
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
                 .message("Đặt hàng thành công")
@@ -134,7 +155,7 @@ public class OrderService implements IOrderService {
     }
 
     @Override
-    public APIResponse createOrderFromCart(PaymentRequest request) {
+    public APIResponse createOrderFromCart(PaymentRequest request) throws IOException {
         String identifier = jwtUtils.getUserFromToken(request.getToken());
         Optional<User> user = Optional.empty();
         if (identifier != null) {
@@ -164,7 +185,17 @@ public class OrderService implements IOrderService {
         Order order = new Order();
         order.setUser(user.get());
         order.setOrderCode(generateUniqueOrderCode());
-        order.setDeliveryAddress(request.getDeliveryAddress());
+        AddressRequest addressDTO = request.getAddress();
+        if (addressDTO != null) {
+            String fullAddress = String.format("%s, %s, %s",
+                    addressDTO.getStreet(),
+                    addressDTO.getDistrict(),
+                    addressDTO.getCity());
+            order.setDeliveryAddress(fullAddress);
+        } else {
+            order.setDeliveryAddress(user.get().getAddress());
+        }
+
         order.setDeliveryPhone(request.getDeliveryPhone());
         if (request.getPaymentMethod().equals("ZALOPAY")) {
             order.setStatus("PAID");
@@ -216,6 +247,9 @@ public class OrderService implements IOrderService {
         }
         // Clear cart
         cartRepository.deleteAll(cartItems);
+
+        // Send notification to WebSocket
+        orderNotificationWebSocketHandler.sendOrderNotification(order.getOrderCode());
 
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
@@ -420,10 +454,11 @@ public class OrderService implements IOrderService {
      * Trả về chuỗi “x phút trước”, “x giờ trước” hoặc “x ngày trước”
      */
     public static String formatTime(LocalDateTime givenTime) {
-        LocalDateTime now = LocalDateTime.now();
+        ZoneId hoChiMinhZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        LocalDateTime now = LocalDateTime.now(hoChiMinhZone);
         long minutesAgo = Duration.between(givenTime, now).toMinutes();
-        long hoursAgo   = Duration.between(givenTime, now).toHours();
-        long daysAgo    = Duration.between(givenTime, now).toDays();
+        long hoursAgo = Duration.between(givenTime, now).toHours();
+        long daysAgo = Duration.between(givenTime, now).toDays();
 
         if (minutesAgo < 60) {
             return minutesAgo + " phút trước";
@@ -433,6 +468,20 @@ public class OrderService implements IOrderService {
             return daysAgo + " ngày trước";
         }
     }
+    @Override
+    public Integer getTotalSoldByProductId(String productId) {
+        // Lấy tất cả các đơn hàng
+        List<Order> orders = orderRepository.findAll();
+
+        // Tính tổng số lượng đã bán cho sản phẩm cụ thể
+        int totalSold = orders.stream()
+                .flatMap(order -> order.getOrderDetails().stream())
+                .filter(orderDetail -> orderDetail.getProduct().getId().equals(productId))
+                .mapToInt(OrderDetail::getQuantity)
+                .sum();
+        return totalSold;
+    }
+
     @Override
     public APIResponse getOrderStatistics() {
         // Total orders

@@ -78,7 +78,11 @@ public class OrderController {
 
                         if (Integer.parseInt(data.get("returncode").toString()) == 1) {
                             System.out.println("Payment successful for: " + appTransId);
-                            orderService.createOrderNow(request);
+                            try {
+                                orderService.createOrderNow(request);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                             scheduler.shutdown(); // Stop scheduler after successful payment
                         }
                     }
@@ -136,7 +140,11 @@ public class OrderController {
 
                         if (Integer.parseInt(data.get("returncode").toString()) == 1) {
                             System.out.println("Payment successful for: " + appTransId);
-                            orderService.createOrderFromCart(orderRequest);
+                            try {
+                                orderService.createOrderFromCart(orderRequest);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                             scheduler.shutdown(); // Dừng scheduler ngay sau khi thanh toán thành công
                         }
                     }

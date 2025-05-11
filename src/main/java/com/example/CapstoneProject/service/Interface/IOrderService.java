@@ -4,10 +4,12 @@ import com.example.CapstoneProject.request.PaymentRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import org.springframework.data.domain.Pageable;
 
-public interface IOrderService {
-    APIResponse createOrderNow(PaymentRequest request);
+import java.io.IOException;
 
-    APIResponse createOrderFromCart(PaymentRequest request);
+public interface IOrderService {
+    APIResponse createOrderNow(PaymentRequest request) throws IOException;
+
+    APIResponse createOrderFromCart(PaymentRequest request) throws IOException;
 
     String generateUniqueOrderCode();
 
@@ -20,6 +22,8 @@ public interface IOrderService {
     APIResponse updateOrderStatus(String orderId, String status);
 
     APIResponse getOrdersWithinLastHour();
+
+    Integer getTotalSoldByProductId(String productId);
 
     APIResponse getOrderStatistics();
 }

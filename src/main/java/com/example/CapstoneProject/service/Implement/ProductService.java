@@ -193,13 +193,6 @@ public class ProductService implements IProductService {
                         .build();
             }
 
-            if (variantRequest.getPrice() < 0) {
-                return APIResponse.builder()
-                        .statusCode(Code.BAD_REQUEST.getCode())
-                        .message("Price phải lớn hơn 0")
-                        .build();
-            }
-
             ProductVariant existingVariant = product.getVariants().stream()
                     .filter(v -> v.getSize().getName().equals(size.getName()) && v.getColor().getColor().equals(color.getColor()))
                     .findFirst()
@@ -207,13 +200,11 @@ public class ProductService implements IProductService {
 
             if (existingVariant != null) {
                 existingVariant.setQuantity(existingVariant.getQuantity() + variantRequest.getQuantity());
-                existingVariant.setPrice(variantRequest.getPrice());
             } else {
                 ProductVariant newVariant = new ProductVariant();
                 newVariant.setSize(size);
                 newVariant.setColor(color);
                 newVariant.setQuantity(variantRequest.getQuantity());
-                newVariant.setPrice(variantRequest.getPrice());
                 newVariant.setStatus("AVAILABLE");
                 newVariant.setProduct(product);
                 product.getVariants().add(newVariant);
@@ -260,12 +251,6 @@ public class ProductService implements IProductService {
                     .build();
         }
 
-        if (variantRequest.getPrice() < 0) {
-            return APIResponse.builder()
-                    .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Price phải lớn hơn 0")
-                    .build();
-        }
 
         ProductVariant existingVariant = product.getVariants().stream()
                 .filter(v -> v.getSize().getName().equals(size.getName()) && v.getColor().getColor().equals(color.getColor()))
@@ -274,7 +259,6 @@ public class ProductService implements IProductService {
 
         if (existingVariant != null) {
             existingVariant.setQuantity(variantRequest.getQuantity());
-            existingVariant.setPrice(variantRequest.getPrice());
             productRepository.save(product);
             return APIResponse.builder()
                     .statusCode(Code.OK.getCode())

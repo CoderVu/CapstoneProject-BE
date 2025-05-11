@@ -23,7 +23,7 @@ public class PaymentRequest {
     private String apptransid;
     private Long order_id;
     private String token;
-    private String deliveryAddress;
+    private AddressRequest address;
     private String deliveryPhone;
     private Double longitude;
     private Double latitude;

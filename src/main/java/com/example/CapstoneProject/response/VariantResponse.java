@@ -15,4 +15,5 @@ public class VariantResponse {
     private String color;
     private Integer quantity;
     private String status;
+    private Double price;
 }

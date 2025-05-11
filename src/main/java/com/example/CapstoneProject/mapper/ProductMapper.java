@@ -6,6 +6,7 @@ import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.request.ProductRequest;
 import com.example.CapstoneProject.request.VariantRequest;
+import com.example.CapstoneProject.service.Interface.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,8 @@ public class ProductMapper {
 
     @Autowired
     private ColorRepository colorRepository;
+    @Autowired
+    private IOrderService orderService;
 
 
     public ImageResponse toImageResponse(Image image) {
@@ -53,19 +56,20 @@ public class ProductMapper {
                 .rating(averageRate)
                 .totalRate(totalRate)
                 .build();
-        String type = "shose";
         // Calculate total quantity of all variants
         int totalQuantity = product.getVariants().stream()
                 .filter(variant -> !"UNAVAILABLE".equals(variant.getColor().getStatus()))
                 .mapToInt(ProductVariant::getQuantity)
                 .sum();
+        int totalSold = orderService.getTotalSoldByProductId(product.getId());
+
         return ProductResponse.builder()
                 .id(product.getId())
-                .type(type)
                 .productName(product.getProductName())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .discountPrice(product.getDiscountPrice())
+                .sold(totalSold)
                 .gender(product.getGender())
                 .onSale(product.getOnSale())
                 .bestSeller(product.getBestSeller())

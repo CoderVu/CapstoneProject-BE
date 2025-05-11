@@ -214,11 +214,10 @@ public class CartService implements ICartService {
                             .statusColor(cart.getProductVariant().getColor() != null ? cart.getProductVariant().getColor().getStatus() : null)
                             .size(cart.getProductVariant().getSize() != null ? cart.getProductVariant().getSize().getName() : null)
                             .statusSize(cart.getProductVariant().getSize() != null ? cart.getProductVariant().getSize().getStatusSize() : null)
-                            .unitPrice(cart.getProductVariant() != null ? cart.getProductVariant().getPrice() : null)
                             .quantity(cart.getQuantity())
                             .statusQuantity(cart.getProductVariant().getQuantity() == 0 ? "UNAVAILABLE" : "AVAILABLE")
                             .totalPrice(cart.getTotalPrice())
-                            .discountPrice(product.getDiscountPrice() != null ? product.getDiscountPrice() : null)
+                            .discountPrice(product != null ? product.getDiscountPrice() : null)
                             .status(cart.getStatus())
                             .build();
                 })

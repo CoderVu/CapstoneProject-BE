@@ -13,7 +13,6 @@ public class Brand {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String name;
-
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products = new ArrayList<>();
 }
