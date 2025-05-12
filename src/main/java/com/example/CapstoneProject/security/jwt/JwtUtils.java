@@ -72,7 +72,7 @@ public class JwtUtils {
     }
 
     public String getUserFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
                 .setSigningKey(jwtSecret)
                 .build()
                 .parseClaimsJws(token)
@@ -94,7 +94,7 @@ public class JwtUtils {
             return false;
         }
         try {
-            Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token);
+            Jwts.parser().setSigningKey(key()).build().parseClaimsJws(token);
             return true;
         } catch (MalformedJwtException e) {
             logger.error("Invalid jwt token: {}", e.getMessage());
