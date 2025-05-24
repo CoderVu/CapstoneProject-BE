@@ -1,0 +1,58 @@
+@startuml Product Management Activity
+
+' Styling
+skinparam {
+    ActivityBackgroundColor #424242
+    ActivityBorderColor #FFFFFF
+    ArrowColor #FFFFFF
+    ActivityDiamondBackgroundColor #616161
+    ActivityDiamondBorderColor #FFFFFF
+    BackgroundColor #212121
+    FontColor #FFFFFF
+}
+
+title Quản lý sản phẩm
+
+start
+
+:Chủ shop đăng nhập;
+
+if (Thêm sản phẩm mới?) then (Có)
+    :Nhập thông tin sản phẩm;
+    :Tải lên hình ảnh;
+    :Thêm biến thể sản phẩm;
+    :Thêm mô tả và hướng dẫn;
+    :Lưu sản phẩm;
+else (Không)
+    if (Sửa sản phẩm?) then (Có)
+        :Tìm sản phẩm cần sửa;
+        :Cập nhật thông tin;
+        :Cập nhật hình ảnh;
+        :Cập nhật biến thể;
+        :Cập nhật mô tả;
+        :Lưu thay đổi;
+    else (Không)
+        if (Xóa sản phẩm?) then (Có)
+            :Tìm sản phẩm cần xóa;
+            :Xác nhận xóa;
+            :Xóa sản phẩm;
+        else (Không)
+            :Xem danh sách sản phẩm;
+            :Lọc và tìm kiếm;
+            :Xem chi tiết sản phẩm;
+        endif
+    endif
+endif
+
+:Kiểm tra kết quả;
+
+if (Thành công?) then (Có)
+    :Hiển thị thông báo thành công;
+else (Không)
+    :Hiển thị thông báo lỗi;
+    :Quay lại bước trước;
+endif
+
+stop
+
+@enduml 

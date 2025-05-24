@@ -43,6 +43,8 @@ public interface IProductService {
 
     PaginatedResponse<ProductResponse> getProductsByCollection(String collectionId, Pageable pageable);
 
+    PaginatedResponse<ProductResponse> getProductsByCollectionName(String collectionName, Pageable pageable);
+
     PaginatedResponse<ProductResponse> FilterProducts(Pageable pageable, String gender, String category, String brand, Double priceMin, Double priceMax, String color, String size);
 
 

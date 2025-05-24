@@ -41,14 +41,19 @@ public class DiscountCodeService implements IDiscountCodeService {
         return new APIResponse(200, "Discount code created successfully", true);
     }
     private String generateRandomCode() {
-        String CODE;
-        do {
-            byte[] RANDOM_BYTES = new byte[8];
-            random.nextBytes(RANDOM_BYTES);
-            CODE = Base64.getUrlEncoder().withoutPadding().encodeToString(RANDOM_BYTES);
-        } while (discountCodeRepository.findByCode(CODE).isPresent());
-        return CODE;
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            int index = random.nextInt(characters.length());
+            code.append(characters.charAt(index));
+        }
+        // Kiểm tra trùng
+        while (discountCodeRepository.findByCode(code.toString()).isPresent()) {
+            code.setCharAt(random.nextInt(8), characters.charAt(random.nextInt(characters.length())));
+        }
+        return code.toString();
     }
+
     @Override
     public APIResponse getAllDiscountCodes() {
         List<DiscountCode> discountCodes = discountCodeRepository.findAll();
@@ -58,6 +63,7 @@ public class DiscountCodeService implements IDiscountCodeService {
                         .discountPercentage(discountCode.getDiscountPercentage())
                         .expiryDate(discountCode.getExpiryDate())
                         .status(discountCode.getStatus())
+                        .userId(discountCode.getUser() != null ? discountCode.getUser().getId() : null)
                         .build())
                 .toList();
         return new APIResponse(200, "Lấy danh sách mã giảm giá thành công", discountResponses);
@@ -82,6 +88,7 @@ public class DiscountCodeService implements IDiscountCodeService {
                         .discountPercentage(discountCode.getDiscountPercentage())
                         .expiryDate(discountCode.getExpiryDate())
                         .status(discountCode.getStatus())
+                        .userId(discountCode.getUser() != null ? discountCode.getUser().getId() : null)
                         .build())
                 .toList();
         return new APIResponse(200, "Lấy danh sách mã giảm giá thành công", discountResponses);
@@ -119,6 +126,31 @@ public class DiscountCodeService implements IDiscountCodeService {
             return new APIResponse(404, "User not found", null);
         }
         return applyDiscountCodeToUser(discountCode, user.get().getId());
+    }
+
+    @Override
+    public APIResponse deleteDiscountCode(String discountCode) {
+        Optional<DiscountCode> discountCodeOpt = discountCodeRepository.findByCode(discountCode);
+        if (discountCodeOpt.isEmpty()) {
+            return new APIResponse(404, "Discount code not found", null);
+        }
+        discountCodeRepository.delete(discountCodeOpt.get());
+        return new APIResponse(200, "Xóa mã giảm giá thành công", null);
+    }
+    @Override
+    public APIResponse deleteDiscountCodeByUser(String discountCode, String token) {
+        String identifier = jwtUtils.getUserFromToken(token);
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
+        }
+        if (user.isEmpty()) {
+            return new APIResponse(404, "User not found", null);
+        }
+        return deleteDiscountCode(discountCode);
     }
 
 }

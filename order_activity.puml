@@ -1,0 +1,76 @@
+@startuml Order Activity
+
+' Styling
+skinparam {
+    ActivityBackgroundColor #F3E5F5
+    ActivityBorderColor #666666
+    ArrowColor #666666
+    ActivityDiamondBackgroundColor #E3F2FD
+    ActivityDiamondBorderColor #666666
+}
+
+title Đặt hàng
+
+start
+
+:Người dùng đăng nhập;
+
+if (Mua ngay?) then (Có)
+    :Chọn sản phẩm;
+    :Chọn số lượng;
+    :Chọn biến thể;
+    :Nhập thông tin giao hàng;
+    :Chọn phương thức thanh toán;
+else (Không)
+    if (Mua từ giỏ hàng?) then (Có)
+        :Xem giỏ hàng;
+        :Chọn sản phẩm từ giỏ;
+        :Nhập thông tin giao hàng;
+        :Chọn phương thức thanh toán;
+    endif
+endif
+
+:Kiểm tra thông tin đơn hàng;
+
+if (Thanh toán qua ZaloPay?) then (Có)
+    :Tạo mã đơn hàng;
+    :Gửi yêu cầu thanh toán ZaloPay;
+    :Chuyển hướng đến ZaloPay;
+    
+    fork
+        :Kiểm tra trạng thái thanh toán;
+        if (Thanh toán thành công?) then (Có)
+            :Tạo đơn hàng;
+            :Cập nhật trạng thái;
+            :Gửi thông báo;
+        else (Không)
+            :Hủy đơn hàng;
+            :Hiển thị thông báo lỗi;
+        endif
+    fork again
+        :Đếm thời gian chờ;
+        if (Quá thời gian?) then (Có)
+            :Hủy đơn hàng;
+            :Hiển thị thông báo timeout;
+        endif
+    end fork
+else (Không)
+    :Thanh toán tiền mặt;
+    :Tạo đơn hàng;
+    :Cập nhật trạng thái;
+    :Gửi thông báo;
+endif
+
+:Kiểm tra kết quả;
+
+if (Thành công?) then (Có)
+    :Hiển thị thông báo thành công;
+    :Cập nhật lịch sử đơn hàng;
+else (Không)
+    :Hiển thị thông báo lỗi;
+    :Quay lại bước trước;
+endif
+
+stop
+
+@enduml 

@@ -1,0 +1,67 @@
+@startuml Category Management Activity
+
+' Styling
+skinparam {
+    ActivityBackgroundColor #F3E5F5
+    ActivityBorderColor #666666
+    ArrowColor #666666
+    ActivityDiamondBackgroundColor #E3F2FD
+    ActivityDiamondBorderColor #666666
+}
+
+title Quản lý danh mục
+
+start
+
+:Chủ shop đăng nhập;
+
+:Vào trang quản lý danh mục;
+
+if (Quản lý danh mục?) then (Có)
+    if (Thêm danh mục?) then (Có)
+        :Nhập tên danh mục;
+        :Nhập mô tả;
+        :Tải lên hình ảnh;
+        :Lưu danh mục;
+    else (Không)
+        if (Sửa danh mục?) then (Có)
+            :Chọn danh mục cần sửa;
+            :Cập nhật thông tin;
+            :Cập nhật hình ảnh;
+            :Lưu thay đổi;
+        else (Không)
+            if (Xóa danh mục?) then (Có)
+                :Chọn danh mục cần xóa;
+                :Xác nhận xóa;
+                :Xóa danh mục;
+            else (Không)
+                :Xem danh sách danh mục;
+            endif
+        endif
+    endif
+else (Không)
+    if (Quản lý thương hiệu?) then (Có)
+        :Thêm/Sửa/Xóa thương hiệu;
+    else (Không)
+        if (Quản lý bộ sưu tập?) then (Có)
+            :Tạo bộ sưu tập mới;
+            :Thêm sản phẩm vào bộ sưu tập;
+            :Cập nhật thông tin bộ sưu tập;
+        else (Không)
+            :Xem danh sách bộ sưu tập;
+        endif
+    endif
+endif
+
+:Kiểm tra kết quả;
+
+if (Thành công?) then (Có)
+    :Hiển thị thông báo thành công;
+else (Không)
+    :Hiển thị thông báo lỗi;
+    :Quay lại bước trước;
+endif
+
+stop
+
+@enduml 

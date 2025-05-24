@@ -45,6 +45,8 @@ public class OrderService implements IOrderService {
     @Autowired
     private CartRepository cartRepository;
     @Autowired
+    private DiscountCodeRepository discountCodeRepository;
+    @Autowired
     private JwtUtils jwtUtils;
 
     @Autowired
@@ -127,7 +129,30 @@ public class OrderService implements IOrderService {
         }
 
         order.setDeliveryPhone(request.getDeliveryPhone());
-        order.setTotalAmount(Double.valueOf(request.getAmount()));
+
+        if (request.getDiscountCode() != null) {
+            Optional<DiscountCode> discountCodeOpt = discountCodeRepository.findByCode(request.getDiscountCode());
+            if (discountCodeOpt.isPresent()) {
+                DiscountCode discountCode = discountCodeOpt.get();
+                if ("ASSIGNED".equals(discountCode.getStatus())) {
+                    order.setTotalAmount(Double.valueOf(request.getAmount()));
+                    discountCode.setStatus("USED");
+                    discountCodeRepository.save(discountCode);
+                } else {
+                    return APIResponse.builder()
+                            .statusCode(Code.BAD_REQUEST.getCode())
+                            .message("Discount code is not active")
+                            .build();
+                }
+            } else {
+                return APIResponse.builder()
+                        .statusCode(Code.NOT_FOUND.getCode())
+                        .message("Discount code not found")
+                        .build();
+            }
+        } else {
+            order.setTotalAmount(Double.valueOf(request.getAmount()));
+        }
         if (request.getPaymentMethod().equals("ZALOPAY")) {
             order.setStatus("PAID");
         } else {
@@ -202,7 +227,29 @@ public class OrderService implements IOrderService {
         } else {
             order.setStatus("PENDING");
         }
-        order.setTotalAmount(Double.valueOf(request.getAmount()));
+        if (request.getDiscountCode() != null) {
+            Optional<DiscountCode> discountCodeOpt = discountCodeRepository.findByCode(request.getDiscountCode());
+            if (discountCodeOpt.isPresent()) {
+                DiscountCode discountCode = discountCodeOpt.get();
+                if ("ASSIGNED".equals(discountCode.getStatus())) {
+                    order.setTotalAmount(Double.valueOf(request.getAmount()));
+                    discountCode.setStatus("USED");
+                    discountCodeRepository.save(discountCode);
+                } else {
+                    return APIResponse.builder()
+                            .statusCode(Code.BAD_REQUEST.getCode())
+                            .message("Discount code is not active")
+                            .build();
+                }
+            } else {
+                return APIResponse.builder()
+                        .statusCode(Code.NOT_FOUND.getCode())
+                        .message("Discount code not found")
+                        .build();
+            }
+        } else {
+            order.setTotalAmount(Double.valueOf(request.getAmount()));
+        }
         orderRepository.save(order);
 
         for (Cart cartItem : cartItems) {
@@ -246,7 +293,7 @@ public class OrderService implements IOrderService {
             orderDetailRepository.save(orderDetail);
         }
         // Clear cart
-        cartRepository.deleteAll(cartItems);
+//        cartRepository.deleteAll(cartItems);
 
         // Send notification to WebSocket
         orderNotificationWebSocketHandler.sendOrderNotification(order.getOrderCode());
@@ -451,7 +498,7 @@ public class OrderService implements IOrderService {
     }
 
     /**
-     * Trả về chuỗi “x phút trước”, “x giờ trước” hoặc “x ngày trước”
+     * Trả về chuỗi "x phút trước", "x giờ trước" hoặc "x ngày trước"
      */
     public static String formatTime(LocalDateTime givenTime) {
         ZoneId hoChiMinhZone = ZoneId.of("Asia/Ho_Chi_Minh");
@@ -500,12 +547,64 @@ public class OrderService implements IOrderService {
         Map<String, Long> ordersByDate = orderRepository.findAll().stream()
                 .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate().toString(), Collectors.counting()));
 
+        // Doanh thu theo tháng/năm
+        Map<String, Double> revenueByMonthYear = orderRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getCreatedAt().getYear() + "-" + order.getCreatedAt().getMonthValue(),
+                        Collectors.summingDouble(Order::getTotalAmount)
+                ));
+
+        // Số lượng sản phẩm bán ra theo từng sản phẩm
+        Map<String, Integer> productSales = orderRepository.findAll().stream()
+                .flatMap(order -> order.getOrderDetails().stream())
+                .collect(Collectors.groupingBy(
+                        orderDetail -> orderDetail.getProduct().getProductName(),
+                        Collectors.summingInt(OrderDetail::getQuantity)
+                ));
+
+        // Top sản phẩm bán chạy (top 5)
+        List<Map.Entry<String, Integer>> topProducts = productSales.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(5)
+                .collect(Collectors.toList());
+
+        // Khách hàng mua nhiều nhất (top 5)
+        Map<String, Double> customerTotalAmount = orderRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getUser().getFullName(),
+                        Collectors.summingDouble(Order::getTotalAmount)
+                ));
+        List<Map.Entry<String, Double>> topCustomers = customerTotalAmount.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(5)
+                .collect(Collectors.toList());
+
+        // Đơn hàng theo khu vực (địa chỉ giao hàng)
+        Map<String, Long> ordersByRegion = orderRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        order -> Optional.ofNullable(order.getDeliveryAddress()).orElse("N/A"),
+                        Collectors.counting()
+                ));
+
+        // Trạng thái đơn hàng theo tháng
+        Map<String, Map<String, Long>> statusByMonth = orderRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getCreatedAt().getYear() + "-" + order.getCreatedAt().getMonthValue(),
+                        Collectors.groupingBy(Order::getStatus, Collectors.counting())
+                ));
+
         // Build response
         Map<String, Object> statistics = new HashMap<>();
         statistics.put("totalOrders", totalOrders);
         statistics.put("totalRevenue", totalRevenue);
         statistics.put("ordersByStatus", ordersByStatus);
         statistics.put("ordersByDate", ordersByDate);
+        statistics.put("revenueByMonthYear", revenueByMonthYear);
+        statistics.put("productSales", productSales);
+        statistics.put("topProducts", topProducts);
+        statistics.put("topCustomers", topCustomers);
+        statistics.put("ordersByRegion", ordersByRegion);
+        statistics.put("statusByMonth", statusByMonth);
 
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())

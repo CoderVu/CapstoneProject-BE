@@ -50,6 +50,8 @@ public class PublicController {
     private IDiscountCodeService discountCodeService;
     @Autowired
     private IEmailService emailService;
+    @Autowired
+    private ICollectionService collectionService;
 
     @PostMapping("/send-email")
     public ResponseEntity<APIResponse> sendEmail(@RequestParam String email, @RequestParam String subject, @RequestParam String content) {
@@ -88,14 +90,30 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/products/collection/{id}")
-    public ResponseEntity<APIResponse> getProductsByCollectionId(
-        @PathVariable String id,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "30") int size) {
+//    @GetMapping("/products/collection/{id}")
+//    public ResponseEntity<APIResponse> getProductsByCollectionId(
+//        @PathVariable String id,
+//        @RequestParam(defaultValue = "0") int page,
+//        @RequestParam(defaultValue = "30") int size) {
+//        Pageable pageable = PageRequest.of(page, size);
+//        PaginatedResponse<ProductResponse> productResponses = productService.getProductsByCollection(id, pageable);
+//        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
+//        return ResponseEntity.ok(response);
+//    }
+    @GetMapping("/products/collection/{name}")
+    public ResponseEntity<APIResponse> getProductsByCollectionName(
+            @PathVariable String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        PaginatedResponse<ProductResponse> productResponses = productService.getProductsByCollection(id, pageable);
+        PaginatedResponse<ProductResponse> productResponses = productService.getProductsByCollectionName(name, pageable);
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/products/collection")
+    public ResponseEntity<APIResponse> getAllCollections() {
+        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), collectionService.getAllCollections());
         return ResponseEntity.ok(response);
     }
     @GetMapping("/products/{id}")

@@ -1,0 +1,76 @@
+@startuml Attribute Management Activity
+
+' Styling
+skinparam {
+    ActivityBackgroundColor #F3E5F5
+    ActivityBorderColor #666666
+    ArrowColor #666666
+    ActivityDiamondBackgroundColor #E3F2FD
+    ActivityDiamondBorderColor #666666
+}
+
+title Quản lý thuộc tính
+
+start
+
+:Chủ shop đăng nhập;
+
+:Vào trang quản lý thuộc tính;
+
+if (Quản lý màu sắc?) then (Có)
+    if (Thêm màu mới?) then (Có)
+        :Nhập tên màu;
+        :Chọn mã màu;
+        :Lưu màu mới;
+    else (Không)
+        if (Sửa màu?) then (Có)
+            :Chọn màu cần sửa;
+            :Cập nhật tên màu;
+            :Cập nhật mã màu;
+            :Lưu thay đổi;
+        else (Không)
+            if (Xóa màu?) then (Có)
+                :Chọn màu cần xóa;
+                :Xác nhận xóa;
+                :Xóa màu;
+            else (Không)
+                :Xem danh sách màu;
+            endif
+        endif
+    endif
+else (Không)
+    if (Quản lý kích thước?) then (Có)
+        if (Thêm kích thước mới?) then (Có)
+            :Nhập tên kích thước;
+            :Nhập mô tả;
+            :Lưu kích thước mới;
+        else (Không)
+            if (Sửa kích thước?) then (Có)
+                :Chọn kích thước cần sửa;
+                :Cập nhật thông tin;
+                :Lưu thay đổi;
+            else (Không)
+                if (Xóa kích thước?) then (Có)
+                    :Chọn kích thước cần xóa;
+                    :Xác nhận xóa;
+                    :Xóa kích thước;
+                else (Không)
+                    :Xem danh sách kích thước;
+                endif
+            endif
+        endif
+    endif
+endif
+
+:Kiểm tra kết quả;
+
+if (Thành công?) then (Có)
+    :Hiển thị thông báo thành công;
+else (Không)
+    :Hiển thị thông báo lỗi;
+    :Quay lại bước trước;
+endif
+
+stop
+
+@enduml 

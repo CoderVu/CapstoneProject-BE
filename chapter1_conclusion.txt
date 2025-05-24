@@ -1,0 +1,19 @@
+1.2 Kết chương
+
+Chương này đã cung cấp cho người đọc cái nhìn tổng quan về các lý thuyết và công nghệ được áp dụng để xây dựng website bán quần áo tích hợp gợi ý sản phẩm bằng AI:
+
+- Đối với Backend: 
+  + Spring Boot làm nền tảng chính
+  + Spring Security cho bảo mật và xác thực
+  + Spring JPA cho tương tác với cơ sở dữ liệu
+  + MySQL làm hệ quản trị cơ sở dữ liệu
+  + RESTful Web Service cho API
+  + RestTemplate cho các cuộc gọi HTTP
+
+- Đối với Frontend:
+  + ReactJS làm framework chính
+  + JavaScript cho logic phía client
+  + AJAX cho các request bất đồng bộ
+  + jQuery cho thao tác DOM và xử lý sự kiện
+
+Việc kết hợp các công nghệ trên giúp xây dựng một hệ thống web hiện đại, có khả năng mở rộng và bảo trì dễ dàng. Spring Boot cung cấp nền tảng vững chắc cho backend với các tính năng bảo mật và quản lý dữ liệu mạnh mẽ, trong khi ReactJS mang đến trải nghiệm người dùng mượt mà và responsive cho frontend. 

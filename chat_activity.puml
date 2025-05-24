@@ -1,0 +1,44 @@
+@startuml Chat Activity
+
+' Styling
+skinparam {
+    ActivityBackgroundColor #F3E5F5
+    ActivityBorderColor #666666
+    ArrowColor #666666
+    ActivityDiamondBackgroundColor #E3F2FD
+    ActivityDiamondBorderColor #666666
+}
+
+title Chat
+
+start
+
+:Người dùng đăng nhập;
+
+if (Xem lịch sử chat?) then (Có)
+    :Chọn người nhận;
+    :Gửi yêu cầu lịch sử chat;
+    :Hiển thị lịch sử chat;
+else (Không)
+    if (Xem danh sách người đã chat?) then (Có)
+        :Gửi yêu cầu danh sách;
+        :Hiển thị danh sách người đã chat;
+    else (Không)
+        :Gửi tin nhắn mới;
+        :Lưu tin nhắn;
+        :Cập nhật danh sách chat;
+    endif
+endif
+
+:Kiểm tra kết quả;
+
+if (Thành công?) then (Có)
+    :Hiển thị thông báo thành công;
+else (Không)
+    :Hiển thị thông báo lỗi;
+    :Quay lại bước trước;
+endif
+
+stop
+
+@enduml 

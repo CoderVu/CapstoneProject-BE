@@ -1,0 +1,56 @@
+@startuml Authentication Activity
+
+' Styling
+skinparam {
+    ActivityBackgroundColor #F3E5F5
+    ActivityBorderColor #666666
+    ArrowColor #666666
+    ActivityDiamondBackgroundColor #E3F2FD
+    ActivityDiamondBorderColor #666666
+}
+
+title Xác thực người dùng
+
+start
+
+if (Đăng ký?) then (Có)
+    :Nhập thông tin đăng ký;
+    :Gửi yêu cầu đăng ký;
+    :Gửi mã OTP qua email;
+    :Nhập mã OTP;
+    if (Mã OTP đúng?) then (Có)
+        :Xác thực thành công;
+        :Tạo tài khoản mới;
+    else (Không)
+        :Hiển thị thông báo lỗi;
+        :Quay lại bước nhập OTP;
+    endif
+else (Không)
+    if (Đăng nhập?) then (Có)
+        :Nhập số điện thoại và mật khẩu;
+        :Gửi yêu cầu đăng nhập;
+        if (Thông tin đúng?) then (Có)
+            :Tạo JWT token;
+            :Trả về token và thông tin người dùng;
+        else (Không)
+            :Hiển thị thông báo lỗi;
+        endif
+    else (Không)
+        if (Đăng nhập bằng Google?) then (Có)
+            :Chuyển hướng đến Google;
+            :Xác thực với Google;
+            if (Xác thực thành công?) then (Có)
+                :Lấy thông tin từ Google;
+                :Tạo/Cập nhật tài khoản;
+                :Tạo JWT token;
+                :Trả về token;
+            else (Không)
+                :Hiển thị thông báo lỗi;
+            endif
+        endif
+    endif
+endif
+
+stop
+
+@enduml 

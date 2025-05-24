@@ -1,0 +1,53 @@
+@startuml Function Breakdown - Chủ cửa hàng
+
+skinparam defaultFontSize 16
+skinparam {
+    BackgroundColor white
+    ArrowColor #666666
+    BorderColor #666666
+    PackageBackgroundColor #F3E5F5
+    PackageBorderColor #666666
+    ComponentBackgroundColor #E3F2FD
+    ComponentBorderColor #666666
+    PackageTitleFontSize 18
+    TitleFontSize 20
+}
+
+title **Phân rã chức năng - Chủ cửa hàng**
+
+package "**Chủ cửa hàng**" {
+    
+    package "**Quản lý sản phẩm**" {
+        [Thêm sản phẩm mới]
+        [Cập nhật thông tin sản phẩm]
+        [Quản lý biến thể sản phẩm]
+        [Quản lý hình ảnh]
+        [Quản lý mô tả]
+    }
+
+    package "**Quản lý danh mục**" {
+        [Thêm/Sửa/Xóa danh mục]
+        [Quản lý thương hiệu]
+        [Quản lý bộ sưu tập]
+    }
+
+    package "**Quản lý thuộc tính**" {
+        [Quản lý màu sắc]
+        [Quản lý kích thước]
+    }
+
+    package "**Quản lý đơn hàng**" {
+        [Xem danh sách đơn hàng]
+        [Cập nhật trạng thái đơn hàng]
+        [Xem thống kê doanh thu]
+        [Xem sản phẩm bán chạy]
+    }
+
+    package "**Quản lý người dùng**" {
+        [Xem danh sách người dùng]
+        [Xem chi tiết người dùng]
+        [Xóa người dùng]
+    }
+}
+
+@enduml

@@ -1,0 +1,83 @@
+@startuml E-commerce Website Function Tree
+
+' Set page size to A4
+page 2x2
+scale 1.2
+
+' Improve overall styling
+skinparam {
+    defaultFontName Arial
+    defaultFontSize 10
+    roundCorner 5
+    shadowing true
+    ArrowColor #666666
+    BorderColor #666666
+}
+
+' Style for nodes
+skinparam rectangle {
+    BackgroundColor<<user>> #E3F2FD
+    BackgroundColor<<shop>> #F3E5F5
+    BorderColor #666666
+    FontSize 10
+    FontStyle normal
+    Padding 5
+    Margin 3
+}
+
+' Layout direction
+left to right direction
+
+' Add border around diagram
+rectangle " " as border {
+    ' Main System
+    rectangle "Website Bán Quần Áo" as main #2196F3
+
+    ' Level 1 - Main Categories
+    rectangle "1. Người dùng" as user<<user>>
+    rectangle "2. Chủ cửa hàng" as shopowner<<shop>>
+
+    ' Level 2 - User Functions (Left Column)
+    rectangle "1.1 Quản lý tài khoản\n- Xem thông tin\n- Cập nhật thông tin\n- Đăng xuất" as user1<<user>>
+    rectangle "1.2 Quản lý giỏ hàng\n- Thêm/Xóa sản phẩm\n- Xem giỏ hàng\n- Cập nhật số lượng" as user2<<user>>
+    rectangle "1.3 Quản lý đơn hàng\n- Tạo đơn hàng\n- Xem lịch sử\n- Hủy đơn hàng\n- Đánh giá sản phẩm" as user3<<user>>
+
+    ' Level 2 - User Functions (Right Column)
+    rectangle "1.4 Quản lý yêu thích\n- Thêm/Xóa sản phẩm\n- Xem danh sách" as user4<<user>>
+    rectangle "1.5 Quản lý địa chỉ\n- Cập nhật/Xóa địa chỉ" as user5<<user>>
+    rectangle "1.6 Quản lý mã giảm giá\n- Xem mã giảm giá\n- Áp dụng mã" as user6<<user>>
+
+    ' Level 2 - Shop Owner Functions (Left Column)
+    rectangle "2.1 Quản lý sản phẩm\n- Thêm/Sửa/Xóa sản phẩm\n- Quản lý biến thể\n- Quản lý mô tả\n- Quản lý hướng dẫn" as shop1<<shop>>
+    rectangle "2.2 Quản lý danh mục\n- Thêm/Sửa/Xóa danh mục\n- Quản lý thương hiệu\n- Quản lý bộ sưu tập" as shop2<<shop>>
+    rectangle "2.3 Quản lý thuộc tính\n- Quản lý màu sắc\n- Quản lý kích thước" as shop3<<shop>>
+
+    ' Level 2 - Shop Owner Functions (Right Column)
+    rectangle "2.4 Quản lý đơn hàng\n- Xem tất cả đơn hàng\n- Cập nhật trạng thái\n- Xem thống kê" as shop4<<shop>>
+    rectangle "2.5 Quản lý người dùng\n- Xem danh sách người dùng\n- Xem chi tiết\n- Xóa người dùng" as shop5<<shop>>
+
+    ' Relationships - Main to Level 1
+    main --> user
+    main --> shopowner
+
+    ' Relationships - User Functions (Left Column)
+    user --> user1
+    user1 --> user2
+    user2 --> user3
+
+    ' Relationships - User Functions (Right Column)
+    user --> user4
+    user4 --> user5
+    user5 --> user6
+
+    ' Relationships - Shop Owner Functions (Left Column)
+    shopowner --> shop1
+    shop1 --> shop2
+    shop2 --> shop3
+
+    ' Relationships - Shop Owner Functions (Right Column)
+    shopowner --> shop4
+    shop4 --> shop5
+}
+
+@enduml 
