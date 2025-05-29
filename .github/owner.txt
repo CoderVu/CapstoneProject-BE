@@ -1,6 +1,5 @@
-@startuml Function Breakdown - Chủ cửa hàng
-
-skinparam defaultFontSize 16
+@startuml
+skinparam defaultFontSize 20
 skinparam {
     BackgroundColor white
     ArrowColor #666666
@@ -9,45 +8,50 @@ skinparam {
     PackageBorderColor #666666
     ComponentBackgroundColor #E3F2FD
     ComponentBorderColor #666666
-    PackageTitleFontSize 18
-    TitleFontSize 20
+    PackageTitleFontSize 22
+    TitleFontSize 26
 }
 
-title **Phân rã chức năng - Chủ cửa hàng**
+title **PHÂN RÃ CHỨC NĂNG - CHỦ CỬA HÀNG**
 
-package "**Chủ cửa hàng**" {
+package "==CHỦ CỬA HÀNG==" {
     
-    package "**Quản lý sản phẩm**" {
-        [Thêm sản phẩm mới]
-        [Cập nhật thông tin sản phẩm]
-        [Quản lý biến thể sản phẩm]
-        [Quản lý hình ảnh]
-        [Quản lý mô tả]
+    package "==QUẢN LÝ SẢN PHẨM==" {
+        [==THÊM SẢN PHẨM MỚI==]
+        [==CẬP NHẬT THÔNG TIN SẢN PHẨM==]
+        [==QUẢN LÝ BIẾN THỂ SẢN PHẨM==]
+        [==QUẢN LÝ HÌNH ẢNH==]
+        [==QUẢN LÝ MÔ TẢ==]
     }
 
-    package "**Quản lý danh mục**" {
-        [Thêm/Sửa/Xóa danh mục]
-        [Quản lý thương hiệu]
-        [Quản lý bộ sưu tập]
+    package "==QUẢN LÝ DANH MỤC==" {
+        [==THÊM/SỬA/XÓA DANH MỤC==]
+        [==QUẢN LÝ THƯƠNG HIỆU==]
+        [==QUẢN LÝ BỘ SƯU TẬP==]
     }
 
-    package "**Quản lý thuộc tính**" {
-        [Quản lý màu sắc]
-        [Quản lý kích thước]
+    package "==QUẢN LÝ THUỘC TÍNH==" {
+        [==QUẢN LÝ MÀU SẮC==]
+        [==QUẢN LÝ KÍCH THƯỚC==]
     }
 
-    package "**Quản lý đơn hàng**" {
-        [Xem danh sách đơn hàng]
-        [Cập nhật trạng thái đơn hàng]
-        [Xem thống kê doanh thu]
-        [Xem sản phẩm bán chạy]
+    package "==QUẢN LÝ ĐƠN HÀNG==" {
+        [==XEM DANH SÁCH ĐƠN HÀNG==]
+        [==CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG==]
+        [==XEM CHI TIẾT ĐƠN HÀNG==]
+        [==XÓA ĐƠN HÀNG==]
+        [==XEM LỊCH SỬ ĐƠN HÀNG==]
+        
     }
 
-    package "**Quản lý người dùng**" {
-        [Xem danh sách người dùng]
-        [Xem chi tiết người dùng]
-        [Xóa người dùng]
+    package "==QUẢN LÝ NGƯỜI DÙNG==" {
+        [==XEM DANH SÁCH NGƯỜI DÙNG==]
+        [==XEM CHI TIẾT NGƯỜI DÙNG==]
+        [==XÓA NGƯỜI DÙNG==]
+    }
+    package "==QUẢN LÝ DOANH THU==" {
+        [==XEM THỐNG KÊ DOANH THU==]
+        [==XEM SẢN PHẨM BÁN CHẠY==]
     }
 }
-
 @enduml
