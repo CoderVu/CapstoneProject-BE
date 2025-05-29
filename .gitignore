@@ -15,4 +15,6 @@ target/
 
 ### environment ###
 .env
+### Maven ###
+.mvn/wrapper/maven-wrapper.properties
 
