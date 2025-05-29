@@ -7,4 +7,6 @@ public interface ICollectionService {
     APIResponse addCollection(CollectionRequest request);
 
     APIResponse addProductToCollection(String collectionId, String productId);
+
+    APIResponse getAllCollections();
 }

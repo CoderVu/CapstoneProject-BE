@@ -39,6 +39,11 @@ public class DiscountCodeController {
         APIResponse response = discountCodeService.applyDiscountCodeToUser(discountCode, userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @DeleteMapping("/delete")
+    public ResponseEntity<APIResponse> deleteDiscountCode(@RequestParam String discountCode) {
+        APIResponse response = discountCodeService.deleteDiscountCode(discountCode);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
 
 

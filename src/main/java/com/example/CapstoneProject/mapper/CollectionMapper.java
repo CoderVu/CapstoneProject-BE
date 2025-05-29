@@ -26,7 +26,7 @@ public class CollectionMapper {
         collectionRepository.save(collection);
         return new APIResponse(Code.OK.getCode(), "Collection added", true);
     }
-        public static CollectionResponse toCollectionResponse(Collection collection) {
+        public CollectionResponse toCollectionResponse(Collection collection) {
         return CollectionResponse.builder()
                 .id(collection.getId())
                 .name(collection.getName())

@@ -340,6 +340,24 @@ public class ProductService implements IProductService {
                 products.getSize()
         );
     }
+    @Override
+    public PaginatedResponse<ProductResponse> getProductsByCollectionName(String collectionName, Pageable pageable) {
+        Collection collection = collectionRepository.findByName(collectionName);
+        if (collection == null) {
+            return null;
+        }
+        Page<Product> products = productRepository.findByCollections(collection, pageable);
+        List<ProductResponse> productResponses = products.stream()
+                .map(productMapper::toProductResponse)
+                .collect(Collectors.toList());
+        return new PaginatedResponse<>(
+                productResponses,
+                products.getTotalPages(),
+                products.getTotalElements(),
+                products.getNumber(),
+                products.getSize()
+        );
+    }
 
     @Override
     public PaginatedResponse<ProductResponse> FilterProducts(Pageable pageable, String gender, String category, String brand, Double priceMin, Double priceMax, String color, String size) {

@@ -138,7 +138,7 @@ public class UserService implements IUserService {
 
     @Override
     public List<UserResponse> getAllUser() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findAllButNotDeleted();
         return users.stream().map(user -> UserResponse.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())
@@ -273,6 +273,29 @@ public APIResponse updateAddress(AddressRequest addressRequest) {
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
                 .message("Cập nhật thông tin thành công")
+                .build();
+    }
+
+    @Override
+    public APIResponse deleteUserAccount(String userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.NOT_FOUND.getCode())
+                    .message("User not found")
+                    .build();
+        }
+        User foundUser = user.get();
+        foundUser.setIsDeleted(true);
+        // Xoa so dien thoai
+        foundUser.setPhoneNumber(null);
+        // Xoa email
+        foundUser.setEmail(null);
+        userRepository.save(foundUser);
+
+        return APIResponse.builder()
+                .statusCode(Code.OK.getCode())
+                .message("Tài khoản đã được xóa thành công")
                 .build();
     }
 

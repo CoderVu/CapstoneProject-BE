@@ -8,9 +8,12 @@ import com.example.CapstoneProject.model.Product;
 import com.example.CapstoneProject.repository.CollectionRepository;
 import com.example.CapstoneProject.repository.ProductRepository;
 import com.example.CapstoneProject.response.APIResponse;
+import com.example.CapstoneProject.response.CollectionResponse;
 import com.example.CapstoneProject.service.Interface.ICollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class CollectionService implements ICollectionService {
@@ -42,5 +45,13 @@ public class CollectionService implements ICollectionService {
         collectionRepository.save(collection);
         return new APIResponse(Code.OK.getCode(), "Product added to collection", true);
     }
-
+    @Override
+    public APIResponse getAllCollections() {
+        List<CollectionResponse> collections = collectionRepository.findAll()
+                .stream()
+                .map(collectionMapper::toCollectionResponse)
+                .toList();
+        return new APIResponse(Code.OK.getCode(), "Collections retrieved successfully", collections);
+    }
 }
+

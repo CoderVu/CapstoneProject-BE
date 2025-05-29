@@ -140,6 +140,7 @@ public class AuthService implements IAuthService {
         }
         user.setRole(optionalRole.get());
         user.setEnabled(Boolean.FALSE);
+        user.setIsDeleted(Boolean.FALSE);
         userRepository.save(user);
 
         OTP otp = otpService.createOTP(request.getEmail(), user.getId());
@@ -204,6 +205,8 @@ public class AuthService implements IAuthService {
                 return null;
             }
             newUser.setRole(optionalRole.get());
+            newUser.setEnabled(Boolean.TRUE);
+            newUser.setIsDeleted(Boolean.FALSE);
             userRepository.save(newUser);
             user = userRepository.findByEmail(email);
         }

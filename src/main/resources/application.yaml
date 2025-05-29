@@ -24,9 +24,11 @@ spring:
 #    username: ${SPRING_DATASOURCE_USERNAME:root}
 #    password: ${SPRING_DATASOURCE_PASSWORD:123456789}
     hikari:
-      connection-timeout: 60000
-      maximum-pool-size: 10
-      minimum-idle: 1
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 60000
+      max-lifetime: 1800000
   jpa:
     show-sql: true
     hibernate:
@@ -36,40 +38,26 @@ spring:
       hibernate.show_sql: true
   security:
     jwt:
-      signerKey: "W31fqJQUxdNSy/Y+F+RFsa/Zi4hx3sX2tfRH/dAk/0312mbKCFpdljSyUkeE59vxGYdSPYIAW2UW+pExDCD+1Q=="
+      signerKey: ${JWT_KEY:W31fqJQUxdNSy/Y+F+RFsa/Zi4hx3sX2tfRH/dAk/0312mbKCFpdljSyUkeE59vxGYdSPYIAW2UW+pExDCD+1Q==}
       valid-duration: 86400
       refreshable-duration: 86400
     oauth2:
       client:
         registration:
           google:
-            client-id: ${google.client.id}
-            client-secret: ${google.client.secret}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
             authorization-grant-type: authorization_code
             client-name: google
-          facebook:
-            client-id: ${facebook.client.id}
-            client-secret: ${facebook.client.secret}
-            scope:
-              - email
-              - public_profile
-            authorization-grant-type: authorization_code
-            client-name: facebook
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/auth
             token-uri: https://accounts.google.com/o/oauth2/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
-
-          facebook:
-            authorization-uri: https://www.facebook.com/v2.8/dialog/oauth
-            token-uri: https://graph.facebook.com/v2.8/oauth/access_token
-            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,first_name,last_name
-            user-name-attribute: id
   jackson:
     serialization:
       fail-on-empty-beans: false

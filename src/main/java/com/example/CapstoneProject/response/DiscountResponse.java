@@ -16,4 +16,5 @@ public class DiscountResponse {
     private Double discountPercentage;
     private LocalDateTime expiryDate;
     private String status;
+    private String userId;
 }

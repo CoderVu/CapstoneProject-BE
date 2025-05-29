@@ -22,4 +22,6 @@ public interface IUserService {
     APIResponse deleteAddress(String token, Long addressId);
 
     APIResponse updateUserInfo(String token, UserRequest userRequest);
+
+    APIResponse deleteUserAccount(String userId);
 }
