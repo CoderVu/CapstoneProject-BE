@@ -17,4 +17,8 @@ target/
 .env
 ### Maven ###
 .mvn/wrapper/maven-wrapper.properties
+###Dockerfile###
+Dockerfile
+### Docker ###
+Docker-compose.yml
 
