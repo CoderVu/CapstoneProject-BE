@@ -25,14 +25,7 @@ services:
     ports:
       - '8080:8080'
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_capstone
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456789
-      AZURE_STORAGE_ACCOUNT_KEY: Mmheb6KKumzJiWclGO937G5pEqGihUBeuMYhwXixVnCLx13dguUeCbsX5J8OhZIHuHrCiT/LD96Y+AStjTASxQ==
-      FACEBOOK_CLIENT_ID: 3733164560230312
-      FACEBOOK_CLIENT_SECRET: f28538ebb45667825aeeb30333df17ac
-      GOOGLE_CLIENT_ID: 684504390647-3n31glri0v6tt6ackrf2rq1hfpsb6m23.apps.googleusercontent.com
-      GOOGLE_CLIENT_SECRET: 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
+     
     depends_on:
       mysql:
         condition: service_healthy
