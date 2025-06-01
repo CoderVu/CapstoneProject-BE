@@ -21,6 +21,8 @@ public interface ProductRepository extends JpaRepository<Product, String>, JpaSp
 
     List<Product> findByOnSale(boolean onSale);
 
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.rates")
+    List<Product> findAllWithRates();
 
     @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId AND p.id != :productId")
     List<Product> findRelatedProducts(@Param("categoryId") String categoryId, @Param("productId") String productId, Pageable pageable);
