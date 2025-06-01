@@ -50,7 +50,24 @@ jobs:
             script: |
             # Tạo Docker network nếu chưa có
             docker network inspect dockervu >/dev/null 2>&1 || docker network create dockervu
-
+            
+            # Start MySQL container nếu chưa có
+            if [ -z "$(docker ps -a -q -f name=mysql)" ]; then
+            echo "MySQL container not found. Creating one..."
+            docker run -d \
+            --name mysql \
+            --network dockervu \
+            -e MYSQL_DATABASE=db_capstone \
+            -e MYSQL_ROOT_PASSWORD=123456789 \
+            -p 3307:3306 \
+            -v mysql-data:/var/lib/mysql \
+            mysql:8.0
+            else
+            echo "MySQL container already exists."
+            docker start mysql || true
+            fi
+            
+            # Kiểm tra trạng thái MySQL container
             # Stop và remove container nếu đang chạy
             if [ "$(docker ps -q -f name=springboot_capstone)" ]; then
               docker stop springboot_capstone
