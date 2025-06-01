@@ -1,0 +1,64 @@
+name: Build and Deploy Docker to Azure VM
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub (optional)
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t springboot_capstone .
+
+      - name: Save Docker image to tar file
+        run: |
+          docker save springboot_capstone > springboot_capstone.tar
+
+      - name: Copy Docker image to remote server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 20.3.131.196
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "springboot_capstone.tar"
+          target: "/home/${{ secrets.SSH_USER }}/"
+
+      - name: SSH and deploy on remote server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 20.3.131.196
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker rm -f springboot_capstone || true
+            docker rmi springboot_capstone || true
+            docker load < springboot_capstone.tar
+
+            docker run -d --name springboot_capstone \
+              -p 8080:8080 \
+              -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_capstone \
+              -e SPRING_DATASOURCE_USERNAME=root \
+              -e SPRING_DATASOURCE_PASSWORD=123456789 \
+              -e AZURE_STORAGE_ACCOUNT_KEY="${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}" \
+              -e FACEBOOK_CLIENT_ID="${{ secrets.FACEBOOK_CLIENT_ID }}" \
+              -e FACEBOOK_CLIENT_SECRET="${{ secrets.FACEBOOK_CLIENT_SECRET }}" \
+              -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+              -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+              springboot_capstone

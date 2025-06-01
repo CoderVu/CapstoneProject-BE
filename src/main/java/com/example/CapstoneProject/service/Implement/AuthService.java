@@ -22,14 +22,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -111,21 +108,21 @@ public class AuthService implements IAuthService {
         // Validate phone number
         String phoneRegex = "^[0-9]{10}$";
         if (!request.getPhoneNumber().matches(phoneRegex)) {
-            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Invalid phone number format");
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Nhập số điện thoại không hợp lệ. Vui lòng nhập số điện thoại 10 chữ số.");
         }
 
         // Validate email
         String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"; // Standard email format
         if (!request.getEmail().matches(emailRegex)) {
-            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Invalid email format");
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Nhập email không hợp lệ. Vui lòng nhập email theo định dạng chuẩn.");
         }
 
         // Check if phone number or email already exists
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            return APIResponse.error(Code.CONFLICT.getCode(), request.getPhoneNumber() + " already exists");
+            return APIResponse.error(Code.CONFLICT.getCode(), request.getPhoneNumber() + " đã tồn tại");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            return APIResponse.error(Code.CONFLICT.getCode(), request.getEmail() + " already exists");
+            return APIResponse.error(Code.CONFLICT.getCode(), request.getEmail() + " đã tồn tại");
         }
         User user = new User();
         user.setFullName(request.getFullName());
@@ -156,6 +153,56 @@ public class AuthService implements IAuthService {
         return APIResponse.success(Code.CREATED.getCode(), "Vui lòng kiểm tra email để xác thực tài khoản", null);
     }
     @Override
+    public APIResponse forgetPassword(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return APIResponse.error(Code.NOT_FOUND.getCode(), "User not found");
+        }
+        OTP otp = otpService.createOTP(email, user.get().getId());
+        String subject = "Reset your password";
+        String content = "<h2>This is a password reset request</h2>" +
+                "<p>You requested to reset your password.<br>Your one-time code is:</p>" +
+                "<h1 style='font-size:32px; letter-spacing:4px;'>" + otp.getOtp() + "</h1>" +
+                "<p>This code expires in <strong>5 minutes</strong>.</p>" +
+                "<br><p style='font-size:12px; color:#888;'>Email sent by Vu Nguyen Coder</p>" +
+                "<p style='font-size:12px; color:#888;'>If you didn’t request to reset your password, please ignore this email.</p>";
+
+        emailService.sendEmail(email, subject, content);
+        return APIResponse.success(Code.OK.getCode(), "Vui lòng kiểm tra email để đặt lại mật khẩu", null);
+    }
+    @Override
+    public APIResponse verifyForgetPassword(String email, String inputOtp) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return APIResponse.error(Code.NOT_FOUND.getCode(), "Không tìm thấy người dùng với email: " + email);
+        }
+        APIResponse otpResult = otpService.verifyOTPForgetPassword(email, inputOtp);
+        if (otpResult.getStatusCode() != Code.OK.getCode()) {
+            return otpResult;
+        }
+        if (user.get().getPassword() == null) {
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Tài khoản này đã được đăng nhập bằng tài khoản Google. Vui lòng sử dụng tài khoản Google để đăng nhập");
+        }
+        if (user.get().getEnabled().equals(false)) {
+            return APIResponse.error(Code.UNAUTHORIZED.getCode(), "Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản");
+        }
+
+        String newPassword = "123456789";
+        String subject = "Your new password";
+        String content = "<h2>Your new password</h2>" +
+                "<p>Your one-time code is:</p>" +
+                "<h1 style='font-size:32px; letter-spacing:4px;'>" + newPassword + "</h1>" +
+                "<p>Use this password to log in and change your password immediately.</p>" +
+                "<br><p style='font-size:12px; color:#888;'>Email sent by Vu Nguyen Coder</p>" +
+                "<p style='font-size:12px; color:#888;'>If you didn’t request to reset your password, please ignore this email.</p>";
+        emailService.sendEmail(email, subject, content);
+
+        user.get().setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user.get());
+
+        return APIResponse.success(Code.OK.getCode(), "OTP xác thực thành công. Bạn có thể đặt lại mật khẩu.", null);
+    }
+    @Override
     public APIResponse updatePassword(String phoneNumber, String newPassword) {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         if (user.isEmpty()) {
@@ -163,7 +210,7 @@ public class AuthService implements IAuthService {
         }
         user.get().setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user.get());
-        return APIResponse.success(Code.OK.getCode(), "Update password successfully", null);
+        return APIResponse.success(Code.OK.getCode(), "Cập nhật mật khẩu thành công", null);
     }
     @Override
     public APIResponse addPhoneNumber(String email, String phoneNumber) {
@@ -173,7 +220,7 @@ public class AuthService implements IAuthService {
         }
         user.get().setPhoneNumber(phoneNumber);
         userRepository.save(user.get());
-        return APIResponse.success(Code.OK.getCode(), "Add phone number successfully", null);
+        return APIResponse.success(Code.OK.getCode(), "Cập nhật số điện thoại thành công", null);
     }
 
     private final Set<String> invalidTokens = new HashSet<>();

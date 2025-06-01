@@ -1,24 +1,28 @@
-HELP.md
+# Maven build output
 target/
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
-### IntelliJ IDEA ###
-.idea
+# IntelliJ IDEA project files
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### VS Code ###
-.vscode
+# VS Code settings
+.vscode/
 
-### environment ###
+# Environment files
 .env
-### Maven ###
-.mvn/wrapper/maven-wrapper.properties
-###Dockerfile###
-Dockerfile
-### Docker ###
-Docker-compose.yml
 
+# Maven wrapper properties
+.mvn/wrapper/maven-wrapper.properties
+
+# Docker files
+Dockerfile
+Docker-compose.yaml
+docker-compose.yaml
+HELP.md
+
+# Ignore all target folders except in wrapper
+!**/src/main/**/target/
+!**/src/test/**/target/

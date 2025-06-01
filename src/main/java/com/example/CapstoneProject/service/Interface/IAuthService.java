@@ -9,6 +9,10 @@ public interface IAuthService {
 
     APIResponse registerUser(RegisterRequest registerRequest);
 
+    APIResponse forgetPassword(String email);
+
+    APIResponse verifyForgetPassword(String email, String inputOtp);
+
     APIResponse updatePassword(String phoneNumber, String newPassword);
 
     APIResponse addPhoneNumber(String email, String phoneNumber);

@@ -7,4 +7,6 @@ public interface IOTPService {
     OTP createOTP(String email, String userId);
 
     APIResponse verifyOTP(String email, String inputOtp);
+
+    APIResponse verifyOTPForgetPassword(String email, String inputOtp);
 }

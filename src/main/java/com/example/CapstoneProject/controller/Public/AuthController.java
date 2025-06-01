@@ -47,6 +47,16 @@
             APIResponse apiResponse = authService.authenticateUser(request.getPhoneNumber(), request.getPassword());
             return ResponseEntity.status(apiResponse.getStatusCode()).body(apiResponse);
         }
+        @PostMapping("/forgot-password")
+        public ResponseEntity<APIResponse> forgetPassword(@RequestParam String email) {
+            APIResponse response = authService.forgetPassword(email);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        }
+        @PostMapping("/forget-password/verify")
+        public ResponseEntity<APIResponse> verifyForgetPassword(@RequestParam String email, @RequestParam String code) {
+            APIResponse response = authService.verifyForgetPassword(email, code);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        }
 
 //        @GetMapping("/oauth2/callback")
 //        public void oauth2Callback(@AuthenticationPrincipal OAuth2User principal, HttpServletResponse response) throws IOException {

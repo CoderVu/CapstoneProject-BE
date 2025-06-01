@@ -57,7 +57,7 @@ public class PublicController {
     public ResponseEntity<APIResponse> sendEmail(@RequestParam String email, @RequestParam String subject, @RequestParam String content) {
         try {
             emailService.sendEmail(email, subject, content);
-            return ResponseEntity.ok(new APIResponse(Code.OK.getCode(), "Email sent successfully", null));
+            return ResponseEntity.ok(new APIResponse(Code.OK.getCode(), "Thanks for your feedback", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new APIResponse(Code.INTERNAL_SERVER_ERROR.getCode(), "Failed to send email: " + e.getMessage(), null));

@@ -63,6 +63,23 @@ public class OTPService implements IOTPService {
         System.out.println("OTP successfully verified for email: " + email);
         return new APIResponse(Code.OK.getCode(), "Xác thực OTP thành công", null);
     }
+    @Override
+    public APIResponse verifyOTPForgetPassword(String email, String inputOtp) {
+        OTP otp = otpRepository.findTopByEmailAndOtpOrderByCreatedAtDesc(email, inputOtp).orElse(null);
+        if (otp == null) {
+            return new APIResponse(Code.BAD_GATEWAY.getCode(), "OTP không hợp lệ hoặc đã hết hạn", null);
+        }
+        if (otp.isVerified()) {
+            return new APIResponse(Code.BAD_GATEWAY.getCode(), "OTP đã được xác thực trước đó", null);
+        }
+        if (otp.getExpiryTime().isBefore(LocalDateTime.now())) {
+            return new APIResponse(Code.BAD_GATEWAY.getCode(), "OTP đã hết hạn", null);
+        }
+
+        otp.setVerified(true);
+        otpRepository.save(otp);
+        return new APIResponse(Code.OK.getCode(), "Xác thực OTP thành công", null);
+    }
 
 
 }
