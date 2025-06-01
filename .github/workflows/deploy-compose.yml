@@ -47,11 +47,27 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker rm -f springboot_capstone || true
-            docker rmi springboot_capstone || true
-            docker load < springboot_capstone.tar
+            script: |
+            # Tạo Docker network nếu chưa có
+            docker network inspect dockervu >/dev/null 2>&1 || docker network create dockervu
 
+            # Stop và remove container nếu đang chạy
+            if [ "$(docker ps -q -f name=springboot_capstone)" ]; then
+              docker stop springboot_capstone
+            fi
+            if [ "$(docker ps -a -q -f name=springboot_capstone)" ]; then
+              docker rm springboot_capstone
+            fi
+
+            # Xóa image cũ nếu có
+            docker rmi springboot_capstone || true
+
+            # Load lại image từ tar
+            docker load < springboot_capstone.tar
+            
+            # Chạy container mới trong network 'dockervu'
             docker run -d --name springboot_capstone \
+              --network dockervu \
               -p 8080:8080 \
               -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/db_capstone \
               -e SPRING_DATASOURCE_USERNAME=root \
