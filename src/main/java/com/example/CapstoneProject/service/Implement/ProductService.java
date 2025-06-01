@@ -52,6 +52,7 @@ public class ProductService implements IProductService {
     @Autowired
     private ProductVariantRepository productVariantRepository;
 
+    @Transactional
     @Override
     public APIResponse addProduct(ProductRequest request, List<MultipartFile> images) {
         Product product = new Product();
@@ -160,6 +161,7 @@ public class ProductService implements IProductService {
                 .build();
     }
 
+    @Transactional
     @Override
     public APIResponse addVariant(String productId, List<VariantRequest> variantRequests) {
         Product product = productRepository.findById(productId).orElse(null);
@@ -219,6 +221,7 @@ public class ProductService implements IProductService {
                 .build();
     }
 
+    @Transactional
     @Override
     public APIResponse updateVariant(String productId, VariantRequest variantRequest) {
         Product product = productRepository.findById(productId).orElse(null);
@@ -272,6 +275,7 @@ public class ProductService implements IProductService {
                     .build();
         }
     }
+    @Transactional
     @Override
     public APIResponse deleteVariant(String variantId) {
         ProductVariant productVariant = productVariantRepository.findById(variantId).orElse(null);
@@ -288,6 +292,7 @@ public class ProductService implements IProductService {
                 .build();
     }
 
+    @Transactional
     @Override
     public boolean deleteProduct(String id) {
         if (!productRepository.existsById(id)) {
@@ -311,6 +316,7 @@ public class ProductService implements IProductService {
                 products.getSize()
         );
     }
+    @Transactional
     @Override
     public APIResponse getProductOnSale(){
         List<Product> products = productRepository.findByOnSale(true);
@@ -324,6 +330,7 @@ public class ProductService implements IProductService {
                 .build();
     }
 
+    @Transactional
     @Override
     public PaginatedResponse<ProductResponse> getProductsByCollection(String collectionId, Pageable pageable) {
         Optional<Collection> collection = collectionRepository.findById(collectionId);
@@ -342,6 +349,7 @@ public class ProductService implements IProductService {
                 products.getSize()
         );
     }
+    @Transactional
     @Override
     public PaginatedResponse<ProductResponse> getProductsByCollectionName(String collectionName, Pageable pageable) {
         Collection collection = collectionRepository.findByName(collectionName);
@@ -361,6 +369,7 @@ public class ProductService implements IProductService {
         );
     }
 
+    @Transactional
     @Override
     public PaginatedResponse<ProductResponse> FilterProducts(Pageable pageable, String gender, String category, String brand, Double priceMin, Double priceMax, String color, String size) {
         Specification<Product> spec = Specification.where(null);
@@ -397,6 +406,7 @@ public class ProductService implements IProductService {
                 products.getSize()
         );
     }
+    @Transactional
     @Override
     public PaginatedResponse<ProductResponse> SearchProducts(Pageable pageable, String keyword) {
         Specification<Product> spec = Specification.where(ProductSpecification.hasKeyword(keyword));
@@ -413,7 +423,7 @@ public class ProductService implements IProductService {
                 products.getSize()
         );
     }
-
+    @Transactional
     @Override
     public APIResponse updateProduct(String productId, ProductRequest productRequest, Map<String, MultipartFile[]> colorImages) {
         Product product = productRepository.findById(productId).orElse(null);
@@ -525,6 +535,7 @@ public class ProductService implements IProductService {
                 .message("Cập nhật sản phẩm thành công")
                 .build();
     }
+    @Transactional
     @Override
     public String extractColorFromFileName(String fileName, Map<String, String> colorMap) {
         for (Map.Entry<String, String> entry : colorMap.entrySet()) {
@@ -534,6 +545,7 @@ public class ProductService implements IProductService {
         }
         return "unknown";
     }
+    @Transactional
     @Override
     public MultipartFile[] appendToArray(MultipartFile[] array, MultipartFile file) {
         MultipartFile[] newArray = Arrays.copyOf(array, array.length + 1);
@@ -542,7 +554,7 @@ public class ProductService implements IProductService {
     }
 
 
-
+    @Transactional
     @Override
     public PaginatedResponse<ProductResponse> getRelatedProducts(String productId, Pageable pageable) {
         Optional<Product> product = productRepository.findById(productId);
@@ -561,11 +573,13 @@ public class ProductService implements IProductService {
                 pageable.getPageSize()
         );
     }
+    @Transactional
     @Override
     public ProductResponse getProductById(String id) {
         Product product = productRepository.findById(id).get();
         return productMapper.toProductResponse(product);
     }
+    @Transactional
     @Override
     public APIResponse getColorByProductId(String productId) {
         Product product = productRepository.findById(productId).orElse(null);
@@ -584,6 +598,7 @@ public class ProductService implements IProductService {
                 .data(colors)
                 .build();
     }
+    @Transactional
     @Override
     public APIResponse getAllImages() {
         List<Image> images = imageRepository.findAll();
@@ -596,6 +611,7 @@ public class ProductService implements IProductService {
                 .data(imageResponses)
                 .build();
     }
+    @Transactional
     @Override
     public PaginatedResponse<ProductResponse> getProductByImgUrl(List<String> imgUrls, Pageable pageable) {
         String url = "https://dbimage.blob.core.windows.net/images/";
