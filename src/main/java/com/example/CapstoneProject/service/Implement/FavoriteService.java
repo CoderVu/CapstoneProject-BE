@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.CapstoneProject.request.FavoriteRequest;
 import com.example.CapstoneProject.service.Interface.IFavoriteService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ public class FavoriteService implements IFavoriteService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Transactional
     @Override
     public APIResponse addFavorite(FavoriteRequest request) {
         String identifier = jwtUtils.getUserFromToken(request.getToken());
@@ -79,6 +81,7 @@ public class FavoriteService implements IFavoriteService {
                 .message("Thêm sản phẩm yêu thích thành công")
                 .build();
     }
+    @Transactional
     @Override
     public APIResponse removeFavorites(String token, String productId) {
         String identifier = jwtUtils.getUserFromToken(token);
@@ -118,6 +121,7 @@ public class FavoriteService implements IFavoriteService {
                     .build();
         }
     }
+    @Transactional
     @Override
     public APIResponse getAllFavorites(String token) {
         String identifier = jwtUtils.getUserFromToken(token);
