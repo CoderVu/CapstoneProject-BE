@@ -12,6 +12,8 @@ public class Image {
     private String id;
     private String url;
     private String color;
+    @Column(columnDefinition = "LONGTEXT")
+    private String vectorFeatures;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;

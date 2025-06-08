@@ -7,10 +7,7 @@ import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.StatusCode.Code;
 import com.example.CapstoneProject.mapper.ProductMapper;
 import com.example.CapstoneProject.repository.*;
-import com.example.CapstoneProject.response.APIResponse;
-import com.example.CapstoneProject.response.ImageResponse;
-import com.example.CapstoneProject.response.PaginatedResponse;
-import com.example.CapstoneProject.response.ProductResponse;
+import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.service.ImageUploadService;
 import com.example.CapstoneProject.service.Interface.IProductService;
 import com.example.CapstoneProject.service.ProductSpecification;
@@ -602,8 +599,14 @@ public class ProductService implements IProductService {
     @Override
     public APIResponse getAllImages() {
         List<Image> images = imageRepository.findAll();
-        List<ImageResponse> imageResponses = images.stream()
-                .map(image -> new ImageResponse(image.getId(), image.getUrl(), image.getColor()))
+        List<ImageResponse_AI> imageResponses = images.stream()
+                .map(image -> new ImageResponse_AI(
+                        image.getId(),
+                        image.getUrl(),
+                        image.getProduct() != null ? image.getProduct().getId() : null,
+                        image.getProduct() != null ? image.getProduct().getProductName() : null,
+                        image.getVectorFeatures()
+                ))
                 .collect(Collectors.toList());
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
@@ -614,11 +617,7 @@ public class ProductService implements IProductService {
     @Transactional
     @Override
     public PaginatedResponse<ProductResponse> getProductByImgUrl(List<String> imgUrls, Pageable pageable) {
-        String url = "https://dbimage.blob.core.windows.net/images/";
-        List<String> fullImgUrls = imgUrls.stream()
-                .map(imgUrl -> url + imgUrl)
-                .collect(Collectors.toList());
-        Page<Product> productPage = productRepository.findByImgUrls(fullImgUrls, pageable);
+        Page<Product> productPage = productRepository.findByImgUrls(imgUrls, pageable);
         List<ProductResponse> productResponses = productPage.getContent().stream()
                 .map(productMapper::toProductResponse)
                 .collect(Collectors.toList());
@@ -631,6 +630,7 @@ public class ProductService implements IProductService {
                 pageable.getPageSize()
         );
     }
+
 
 
 

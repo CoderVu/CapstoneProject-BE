@@ -257,7 +257,7 @@ public class PublicController {
         APIResponse response = productService.getAllImages();
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/products/images")
+    @GetMapping("/search/products/images")
     public ResponseEntity<APIResponse> getProductsByImgUrls(@RequestParam List<String> imgUrls,
                                                             @RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "30") int size) {
@@ -276,7 +276,7 @@ public class PublicController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get-all")
+    @GetMapping("/discount-codes/get-all")
     public ResponseEntity<APIResponse> getAllDiscountCodes() {
         APIResponse response = discountCodeService.getAllDiscountCodes();
         return ResponseEntity.status(response.getStatusCode()).body(response);

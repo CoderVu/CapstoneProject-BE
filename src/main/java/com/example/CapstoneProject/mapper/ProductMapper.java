@@ -7,6 +7,7 @@ import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.request.ProductRequest;
 import com.example.CapstoneProject.request.VariantRequest;
 import com.example.CapstoneProject.service.Interface.IOrderService;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,7 @@ public class ProductMapper {
     @Autowired
     private IOrderService orderService;
 
-
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public ImageResponse toImageResponse(Image image) {
         if (image == null) {
             return null;

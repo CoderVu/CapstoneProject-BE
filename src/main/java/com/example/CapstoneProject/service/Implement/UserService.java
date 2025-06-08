@@ -14,6 +14,7 @@ import com.example.CapstoneProject.response.AddressResponse;
 import com.example.CapstoneProject.security.jwt.JwtUtils;
 import com.example.CapstoneProject.service.ImageUploadService;
 import com.example.CapstoneProject.service.Interface.IUserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,7 +69,7 @@ public class UserService implements IUserService {
                         .build())
                 .build();
     }
-
+    @Transactional
     @Override
     public UserResponse getUserInfoByToken(String token) {
         String identifier = jwtUtils.getUserFromToken(token);
@@ -107,6 +108,7 @@ public class UserService implements IUserService {
                 .build();
     }
 
+    @Transactional
     @Override
     public UserResponse getUserInfoById(String id) {
         Optional<User> user = userRepository.findById(id);
@@ -135,7 +137,7 @@ public class UserService implements IUserService {
                 .addressList(address)
                 .build();
     }
-
+    @Transactional
     @Override
     public List<UserResponse> getAllUser() {
         List<User> users = userRepository.findAllButNotDeleted();
@@ -153,7 +155,7 @@ public class UserService implements IUserService {
                         .build())
                 .build()).collect(Collectors.toList());
     }
-
+    @Transactional
     @Override
 public APIResponse updateAddress(AddressRequest addressRequest) {
     String token = addressRequest.getToken();
@@ -205,7 +207,7 @@ public APIResponse updateAddress(AddressRequest addressRequest) {
             .message("Address updated successfully")
             .build();
 }
-
+    @Transactional
     @Override
     public APIResponse deleteAddress(String token, Long addressId) {
         String identifier = jwtUtils.getUserFromToken(token);
