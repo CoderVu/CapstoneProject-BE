@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -141,13 +142,38 @@ public class AuthService implements IAuthService {
         userRepository.save(user);
 
         OTP otp = otpService.createOTP(request.getEmail(), user.getId());
-        String subject = "Sign in to your account";
-        String content = "<h2>Sign in to your account</h2>" +
-                "<p>You requested to sign in to Vu Nguyen Coder.<br>Your one-time code is:</p>" +
-                "<h1 style='font-size:32px; letter-spacing:4px;'>" + otp.getOtp() + "</h1>" +
-                "<p>This code expires in <strong>5 minutes</strong>.</p>" +
-                "<br><p style='font-size:12px; color:#888;'>Email sent by Vu Nguyen Coder</p>" +
-                "<p style='font-size:12px; color:#888;'>If you didn’t request to sign in to Shop, please ignore this email.</p>";
+        String subject = "Verify Your Account";
+        String content = "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<meta charset='UTF-8'>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".container { background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }" +
+                ".header { text-align: center; margin-bottom: 30px; }" +
+                ".otp-code { background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 32px; letter-spacing: 4px; font-weight: bold; color: #2c3e50; border-radius: 4px; margin: 20px 0; }" +
+                ".footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888; }" +
+                ".warning { color: #e74c3c; font-size: 12px; margin-top: 20px; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h2 style='color: #2c3e50; margin-bottom: 10px;'>Welcome to Vu Nguyen Coder</h2>" +
+                "<p>Thank you for creating an account. To complete your registration and verify your email address, please use the following verification code:</p>" +
+                "</div>" +
+                "<div class='otp-code'>" + otp.getOtp() + "</div>" +
+                "<p style='text-align: center;'><strong>This code will expire in 5 minutes</strong></p>" +
+                "<div class='warning'>" +
+                "<p>If you didn't create an account with us, please ignore this email or contact support if you have concerns about your account security.</p>" +
+                "</div>" +
+                "<div class='footer'>" +
+                "<p>This is an automated message, please do not reply to this email.</p>" +
+                "<p>© " + LocalDateTime.now().getYear() + " Vu Nguyen Coder. All rights reserved.</p>" +
+                "</div>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
 
         emailService.sendEmail(request.getEmail(), subject, content);
         return APIResponse.success(Code.CREATED.getCode(), "Vui lòng kiểm tra email để xác thực tài khoản", null);
@@ -159,13 +185,38 @@ public class AuthService implements IAuthService {
             return APIResponse.error(Code.NOT_FOUND.getCode(), "User not found");
         }
         OTP otp = otpService.createOTP(email, user.get().getId());
-        String subject = "Reset your password";
-        String content = "<h2>This is a password reset request</h2>" +
-                "<p>You requested to reset your password.<br>Your one-time code is:</p>" +
-                "<h1 style='font-size:32px; letter-spacing:4px;'>" + otp.getOtp() + "</h1>" +
-                "<p>This code expires in <strong>5 minutes</strong>.</p>" +
-                "<br><p style='font-size:12px; color:#888;'>Email sent by Vu Nguyen Coder</p>" +
-                "<p style='font-size:12px; color:#888;'>If you didn’t request to reset your password, please ignore this email.</p>";
+        String subject = "Reset Your Password";
+        String content = "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<meta charset='UTF-8'>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".container { background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }" +
+                ".header { text-align: center; margin-bottom: 30px; }" +
+                ".otp-code { background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 32px; letter-spacing: 4px; font-weight: bold; color: #2c3e50; border-radius: 4px; margin: 20px 0; }" +
+                ".footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888; }" +
+                ".warning { color: #e74c3c; font-size: 12px; margin-top: 20px; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h2 style='color: #2c3e50; margin-bottom: 10px;'>Password Reset Request</h2>" +
+                "<p>We received a request to reset your password. To proceed with the password reset, please use the following verification code:</p>" +
+                "</div>" +
+                "<div class='otp-code'>" + otp.getOtp() + "</div>" +
+                "<p style='text-align: center;'><strong>This code will expire in 5 minutes</strong></p>" +
+                "<div class='warning'>" +
+                "<p>If you didn't request a password reset, please ignore this email or contact support if you have concerns about your account security.</p>" +
+                "</div>" +
+                "<div class='footer'>" +
+                "<p>This is an automated message, please do not reply to this email.</p>" +
+                "<p>© " + LocalDateTime.now().getYear() + " Vu Nguyen Coder. All rights reserved.</p>" +
+                "</div>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
 
         emailService.sendEmail(email, subject, content);
         return APIResponse.success(Code.OK.getCode(), "Vui lòng kiểm tra email để đặt lại mật khẩu", null);
@@ -188,13 +239,42 @@ public class AuthService implements IAuthService {
         }
 
         String newPassword = "123456789";
-        String subject = "Your new password";
-        String content = "<h2>Your new password</h2>" +
-                "<p>Your one-time code is:</p>" +
-                "<h1 style='font-size:32px; letter-spacing:4px;'>" + newPassword + "</h1>" +
-                "<p>Use this password to log in and change your password immediately.</p>" +
-                "<br><p style='font-size:12px; color:#888;'>Email sent by Vu Nguyen Coder</p>" +
-                "<p style='font-size:12px; color:#888;'>If you didn’t request to reset your password, please ignore this email.</p>";
+        String subject = "Your New Password";
+        String content = "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<meta charset='UTF-8'>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".container { background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }" +
+                ".header { text-align: center; margin-bottom: 30px; }" +
+                ".password-box { background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 32px; letter-spacing: 4px; font-weight: bold; color: #2c3e50; border-radius: 4px; margin: 20px 0; }" +
+                ".footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888; }" +
+                ".warning { color: #e74c3c; font-size: 12px; margin-top: 20px; }" +
+                ".important { background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; margin: 20px 0; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h2 style='color: #2c3e50; margin-bottom: 10px;'>Your Password Has Been Reset</h2>" +
+                "<p>Your password has been successfully reset. Here is your new temporary password:</p>" +
+                "</div>" +
+                "<div class='password-box'>" + newPassword + "</div>" +
+                "<div class='important'>" +
+                "<p><strong>Important:</strong> For your security, please log in with this temporary password and change it immediately.</p>" +
+                "</div>" +
+                "<div class='warning'>" +
+                "<p>If you didn't request a password reset, please contact our support team immediately as your account may be compromised.</p>" +
+                "</div>" +
+                "<div class='footer'>" +
+                "<p>This is an automated message, please do not reply to this email.</p>" +
+                "<p>© " + LocalDateTime.now().getYear() + " Vu Nguyen Coder. All rights reserved.</p>" +
+                "</div>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
+
         emailService.sendEmail(email, subject, content);
 
         user.get().setPassword(passwordEncoder.encode(newPassword));
