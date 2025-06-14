@@ -15,6 +15,7 @@ public class Product {
     private String productName;
     private Boolean onSale = (Boolean) false;
     private Boolean bestSeller = (Boolean) false;
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
     private Double price;
     private Double discountPrice;
@@ -44,6 +45,7 @@ public class Product {
     private Image mainImage;
     @OneToMany(mappedBy = "product",fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> additionalImages = new ArrayList<>();
+    private String status;
     @Override
     public String toString() {
         return "Product{" +

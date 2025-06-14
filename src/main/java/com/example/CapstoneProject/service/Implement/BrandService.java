@@ -32,4 +32,29 @@ public class BrandService implements IBrandService {
         List<Brand> brands = categoryRepository.findAll();
         return brands.stream().map(BrandMapper::toBrandResponse).collect(Collectors.toList());
     }
+
+    @Override
+    public boolean updateBrand(BrandRequest request) {
+        Brand brand = categoryRepository.findById(request.getBrandId()).orElse(null);
+        if (brand == null) {
+            return false;
+        }
+        if (categoryRepository.findByName(request.getBrandName()) != null && !brand.getName().equals(request.getBrandName())) {
+            return false;
+        }
+        brand.setName(request.getBrandName());
+        categoryRepository.save(brand);
+        return true;
+    }
+
+    @Override
+    public boolean deleteBrand(String brandId) {
+        Brand brand = categoryRepository.findById(brandId).orElse(null);
+        if (brand == null) {
+            return false;
+        }
+        categoryRepository.delete(brand);
+        return true;
+
+    }
 }

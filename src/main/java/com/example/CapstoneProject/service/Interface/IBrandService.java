@@ -10,4 +10,8 @@ public interface IBrandService {
     boolean addBrand(BrandRequest request);
 
     List<BrandResponse> getAllBrand();
+
+    boolean updateBrand(BrandRequest request);
+
+    boolean deleteBrand(String brandId);
 }

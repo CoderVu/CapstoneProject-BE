@@ -82,7 +82,7 @@ public class ProductMapper {
                         .collect(Collectors.toList()))
                 .mainImage(toImageResponse(product.getMainImage()))
                 .variants(product.getVariants().stream()
-                        .filter(variant -> !"UNAVAILABLE".equals(variant.getColor().getStatus()))
+                        .filter(variant -> !"UNAVAILABLE".equals(variant.getColor().getStatus()) && variant.getStatus().equals("AVAILABLE"))
                         .map(variant -> VariantResponse.builder()
                                 .id(variant.getId())
                                 .sizeName(variant.getSize().getName())

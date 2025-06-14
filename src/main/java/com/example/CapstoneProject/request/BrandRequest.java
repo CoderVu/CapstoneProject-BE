@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class BrandRequest {
+    private String brandId;
     private String brandName;
 }

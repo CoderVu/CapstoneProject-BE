@@ -9,6 +9,7 @@ public class ColorMapper {
        Color color = new Color();
        color.setColor(sizeRequest.getColor());
        color.setColorCode(sizeRequest.getColorCode());
+       color.setStatus("AVAILABLE");
        return color;
     }
     public static ColorResponse toColorResponse(Color color) {

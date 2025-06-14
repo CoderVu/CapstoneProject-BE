@@ -29,4 +29,31 @@ public class BrandController {
                     .body(new APIResponse(Code.CONFLICT.getCode(), Code.CONFLICT.getMessage(), ""));
         }
     }
+    @GetMapping(value = "/getAll", produces = "application/json")
+    public ResponseEntity<APIResponse> getAllBrand() {
+        return ResponseEntity.ok(new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), brandService.getAllBrand()));
+    }
+    @PutMapping(value = "/update/{brandId}", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<APIResponse> updateBrand(@PathVariable String brandId, @RequestBody BrandRequest request) {
+        request.setBrandId(brandId);
+        boolean isUpdated = brandService.updateBrand(request);
+        if (isUpdated) {
+            return ResponseEntity.status(Code.OK.getCode())
+                    .body(new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), ""));
+        } else {
+            return ResponseEntity.status(Code.NOT_FOUND.getCode())
+                    .body(new APIResponse(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), ""));
+        }
+    }
+    @DeleteMapping(value = "/delete/{brandId}", produces = "application/json")
+    public ResponseEntity<APIResponse> deleteBrand(@PathVariable String brandId) {
+        boolean isDeleted = brandService.deleteBrand(brandId);
+        if (isDeleted) {
+            return ResponseEntity.status(Code.OK.getCode())
+                    .body(new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), ""));
+        } else {
+            return ResponseEntity.status(Code.NOT_FOUND.getCode())
+                    .body(new APIResponse(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), ""));
+        }
+    }
 }

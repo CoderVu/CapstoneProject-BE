@@ -30,4 +30,5 @@ public class ProductResponse {
     private List<ImageResponse> images;
     private ImageResponse mainImage;
     private ProductRateResponse rate;
+    private String status;
 }

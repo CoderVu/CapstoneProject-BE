@@ -66,6 +66,12 @@ public class ProductService implements IProductService {
                     .message("Description must be at least 10 characters")
                     .build();
         }
+        if (request.getDescription().length() > 500) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Description must be less than 500 characters")
+                    .build();
+        }
         product.setDescription(request.getDescription());
         if (request.getPrice() < 0) {
             return APIResponse.builder()
@@ -150,6 +156,9 @@ public class ProductService implements IProductService {
                 }
             }
         }
+        // Set status to AVAILABLE
+        product.setStatus("AVAILABLE");
+
 
         productRepository.save(product);
         return APIResponse.builder()
@@ -221,13 +230,14 @@ public class ProductService implements IProductService {
     @Transactional
     @Override
     public APIResponse updateVariant(String productId, VariantRequest variantRequest) {
-        Product product = productRepository.findById(productId).orElse(null);
-        if (product == null) {
+        Optional<Product> productOpt = productRepository.findById(productId);
+        if (productOpt.isEmpty()) {
             return APIResponse.builder()
                     .statusCode(Code.NOT_FOUND.getCode())
                     .message("Product not found")
                     .build();
         }
+        Product product = productOpt.get();
 
         Size size = sizeRepository.findByName(variantRequest.getSizeName());
         if (size == null) {
@@ -248,27 +258,35 @@ public class ProductService implements IProductService {
         if (variantRequest.getQuantity() < 0) {
             return APIResponse.builder()
                     .statusCode(Code.BAD_REQUEST.getCode())
-                    .message("Quantity phải lớn hơn 0")
+                    .message("Quantity phải lớn hơn hoặc bằng 0")
                     .build();
         }
 
+        Optional<ProductVariant> variantOpt = product.getVariants().stream()
+                .filter(v -> v.getSize().getName().equals(size.getName())
+                        && v.getColor().getColor().equals(color.getColor()))
+                .findFirst();
 
-        ProductVariant existingVariant = product.getVariants().stream()
-                .filter(v -> v.getSize().getName().equals(size.getName()) && v.getColor().getColor().equals(color.getColor()))
-                .findFirst()
-                .orElse(null);
-
-        if (existingVariant != null) {
-            existingVariant.setQuantity(variantRequest.getQuantity());
-            productRepository.save(product);
+        if (variantOpt.isPresent()) {
+            ProductVariant variant = variantOpt.get();
+            variant.setQuantity(variantRequest.getQuantity());
+            productVariantRepository.save(variant);
             return APIResponse.builder()
                     .statusCode(Code.OK.getCode())
                     .message("Cập nhật số lượng variant thành công")
                     .build();
         } else {
+            ProductVariant newVariant = new ProductVariant();
+            newVariant.setProduct(product);
+            newVariant.setSize(size);
+            newVariant.setColor(color);
+            newVariant.setQuantity(variantRequest.getQuantity());
+            newVariant.setStatus("AVAILABLE");
+            product.getVariants().add(newVariant);
+            productVariantRepository.save(newVariant);
             return APIResponse.builder()
-                    .statusCode(Code.NOT_FOUND.getCode())
-                    .message("Variant không tồn tại")
+                    .statusCode(Code.CREATED.getCode())
+                    .message("Tạo mới variant thành công")
                     .build();
         }
     }
@@ -282,7 +300,9 @@ public class ProductService implements IProductService {
                     .message("Variant không tồn tại")
                     .build();
         }
-        productVariantRepository.delete(productVariant);
+        // Set thanh UNAVAILABLE thay vì xóa
+        productVariant.setStatus("UNAVAILABLE");
+        productVariantRepository.save(productVariant);
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
                 .message("Xóa variant thành công")
@@ -295,7 +315,10 @@ public class ProductService implements IProductService {
         if (!productRepository.existsById(id)) {
             return false;
         }
-        productRepository.deleteById(id);
+        // set status thành UNAVAILABLE thay vì xóa
+        Product product = productRepository.findById(id).get();
+        product.setStatus("UNAVAILABLE");
+        productRepository.save(product);
         return true;
     }
     @Transactional
@@ -432,7 +455,92 @@ public class ProductService implements IProductService {
         }
 
         product.setProductName(productRequest.getProductName());
+        if (productRequest.getDescription().length() < 10) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Mô tả phải ít nhất 10 ký tự")
+                    .build();
+        }
+        if (productRequest.getDescription().length() > 500) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Mô tả phải ít hơn 500 ký tự")
+                    .build();
+        }
         product.setDescription(productRequest.getDescription());
+        if (productRequest.getPrice() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giá phải lớn hơn 0")
+                    .build();
+        }
+        if (productRequest.getDiscountPrice() < 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giá giảm phải lớn hơn 0")
+                    .build();
+        }
+        if (productRequest.getDiscountPrice() >= productRequest.getPrice()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giá giảm phải nhỏ hơn giá gốc")
+                    .build();
+        }
+        if (productRequest.getOnSale() && productRequest.getDiscountPrice() == 0) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giá giảm không được bằng 0 khi đang sale")
+                    .build();
+        }
+        if (productRequest.getOnSale() && productRequest.getDiscountPrice() >= productRequest.getPrice()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giá giảm phải nhỏ hơn giá gốc khi đang sale")
+                    .build();
+        }
+        if (productRequest.getPrice() <= productRequest.getDiscountPrice()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giá gốc phải lớn hơn giá giảm")
+                    .build();
+        }
+        if (productRequest.getGender() == null || productRequest.getGender().isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giới tính không được để trống")
+                    .build();
+        }
+        if (productRequest.getGender().length() > 10) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Giới tính không được quá 10 ký tự")
+                    .build();
+        }
+        if (productRequest.getBrandName() == null || productRequest.getBrandName().isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Tên thương hiệu không được để trống")
+                    .build();
+        }
+        if (productRequest.getCategoryName() == null || productRequest.getCategoryName().isEmpty()) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Tên danh mục không được để trống")
+                    .build();
+        }
+        if (productRequest.getNewProduct() == null) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Trạng thái sản phẩm mới không được để trống")
+                    .build();
+        }
+
+        if (productRequest.getNewProduct() && !product.getNewProduct()) {
+            product.setNewProduct(true);
+        } else if (!productRequest.getNewProduct() && product.getNewProduct()) {
+            product.setNewProduct(false);
+        }
+        // Cập nhật thông tin sản phẩm
         product.setPrice(productRequest.getPrice());
         product.setDiscountPrice(productRequest.getDiscountPrice());
         product.setOnSale(productRequest.getOnSale());
