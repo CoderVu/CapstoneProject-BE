@@ -22,7 +22,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     }
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(chatWebSocketHandler, "/ws").setAllowedOrigins("*");
+        registry.addHandler(chatWebSocketHandler, "/ws/chat").setAllowedOrigins("*");
         registry.addHandler(orderNotificationWebSocketHandler, "/ws/orders").setAllowedOrigins("*");
     }
 }
