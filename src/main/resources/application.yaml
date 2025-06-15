@@ -47,6 +47,7 @@ spring:
               - profile
             authorization-grant-type: authorization_code
             client-name: google
+            redirect-uri: https://www.capstone.io.vn/api/login/oauth2/code/google
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/auth
