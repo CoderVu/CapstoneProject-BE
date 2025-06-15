@@ -157,6 +157,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
 
     private String getUserIdFromSession(WebSocketSession session) {
-        return  session.getAttributes().get("userId").toString();
+        Object userIdObj = session.getAttributes().get("userId");
+        return userIdObj != null ? userIdObj.toString() : null;
     }
 }
