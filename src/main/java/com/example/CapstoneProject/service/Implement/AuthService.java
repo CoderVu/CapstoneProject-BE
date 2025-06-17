@@ -85,6 +85,7 @@ public class AuthService implements IAuthService {
                     .address(user.get().getAddress())
                     .avatar(user.get().getAvatar())
                     .token(jwt)
+                    .methodLogin(user.get().getMethodLogin())
                     .role(RoleResponse.builder()
                             .id(user.get().getRole().getId())
                             .name(user.get().getRole().getName())
@@ -287,6 +288,27 @@ public class AuthService implements IAuthService {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         if (user.isEmpty()) {
             return APIResponse.error(Code.NOT_FOUND.getCode(), "User not found");
+        }
+        user.get().setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user.get());
+        return APIResponse.success(Code.OK.getCode(), "Cập nhật mật khẩu thành công", null);
+    }
+
+    @Override
+    public APIResponse changePasswordByIdentifier(String token, String oldPassword, String newPassword) {
+        String identifier = jwtUtils.getUserFromToken(token);
+        Optional<User> user = Optional.empty();
+        if (identifier != null) {
+            user = userRepository.findByPhoneNumber(identifier);
+            if (user.isEmpty()) {
+                user = userRepository.findByEmail(identifier);
+            }
+        }
+        if (user.isEmpty()) {
+            return APIResponse.error(Code.NOT_FOUND.getCode(), "Không tìm thấy người dùng với thông tin đã cung cấp");
+        }
+        if (!passwordEncoder.matches(oldPassword, user.get().getPassword())) {
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Mật khẩu cũ không chính xác");
         }
         user.get().setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user.get());

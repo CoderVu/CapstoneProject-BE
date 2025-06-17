@@ -99,6 +99,19 @@ public class UserController {
         }
         return ResponseEntity.ok(response);
     }
+    @PutMapping("/change-password")
+    public ResponseEntity<APIResponse> changePassword(@RequestHeader("Authorization") String token,
+            @RequestParam("oldPassword") String oldPassword,
+            @RequestParam("newPassword") String newPassword) {
+        String newToken = token.substring(7);
+        APIResponse response = authService.changePasswordByIdentifier(newToken, oldPassword, newPassword);
+        if (response.getStatusCode() == Code.NOT_FOUND.getCode()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else if (response.getStatusCode() == Code.BAD_REQUEST.getCode()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
     @PostMapping("/logout")
     public ResponseEntity<APIResponse> logoutUser(@RequestBody String token) {
         APIResponse success = authService.logout(token);

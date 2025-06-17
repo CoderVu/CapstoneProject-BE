@@ -15,6 +15,8 @@ public interface IAuthService {
 
     APIResponse updatePassword(String phoneNumber, String newPassword);
 
+    APIResponse changePasswordByIdentifier(String token, String oldPassword, String newPassword);
+
     APIResponse addPhoneNumber(String email, String phoneNumber);
 
     APIResponse logout(String token);
