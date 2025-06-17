@@ -121,12 +121,7 @@ public class WebSecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .defaultSuccessUrl("/api/v1/auth/oauth2/callback", false)
                         .failureUrl("/api/v1/auth/login?error")
-                        .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/oauth2/authorization"))
-                        .redirectionEndpoint(redirection -> redirection
-                                .baseUri("/login/oauth2/code/*"))
                 )
-                
                 .sessionManagement(session -> session
                         .maximumSessions(Integer.MAX_VALUE)
                         .maxSessionsPreventsLogin(true)
