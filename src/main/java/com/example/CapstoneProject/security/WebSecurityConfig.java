@@ -27,109 +27,111 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final ShopUserDetailsService userDetailsService;
-    private final JwtAuthEntryPoint jwtAuthEntryPoint;
-    private final JwtUtils jwtUtils;
+        private final ShopUserDetailsService userDetailsService;
+        private final JwtAuthEntryPoint jwtAuthEntryPoint;
+        private final JwtUtils jwtUtils;
 
-    private static final String[] AUTH = {
-            "/api/v1/auth/**"
-    };
-    private static final String[] ADMIN = {
-            "/api/v1/admin/**"
-    };
-    private static final String[] USER = {
-            "/api/v1/user/**"
-    };
-    private static final String[] PUBLIC = {
-            "/api/v1/public/**"
-    };
-    private static final String[] MOMO = {
-            "/api/v1/momo/**"
-    };
-    private static final String[] ZALO = {
-            "/api/v1/zalopay/**"
-    };
-    private static final String[] EMAIL = {
-            "/api/v1/email/**"
-    };
-    private static final String[] PAYMENT = {
-            "/api/analyze/**"
-    };
-    private static final String[] WS = {
-            "/ws/**"
-    };
+        private static final String[] AUTH = {
+                        "/api/v1/auth/**"
+        };
+        private static final String[] ADMIN = {
+                        "/api/v1/admin/**"
+        };
+        private static final String[] USER = {
+                        "/api/v1/user/**"
+        };
+        private static final String[] PUBLIC = {
+                        "/api/v1/public/**"
+        };
+        private static final String[] MOMO = {
+                        "/api/v1/momo/**"
+        };
+        private static final String[] ZALO = {
+                        "/api/v1/zalopay/**"
+        };
+        private static final String[] EMAIL = {
+                        "/api/v1/email/**"
+        };
+        private static final String[] PAYMENT = {
+                        "/api/analyze/**"
+        };
+        private static final String[] WS = {
+                        "/ws/**"
+        };
 
-    @Autowired
-    public WebSecurityConfig(@Lazy JwtUtils jwtUtils, JwtAuthEntryPoint jwtAuthEntryPoint, ShopUserDetailsService userDetailsService) {
-        this.jwtUtils = jwtUtils;
-        this.jwtAuthEntryPoint = jwtAuthEntryPoint;
-        this.userDetailsService = userDetailsService;
-    }
+        @Autowired
+        public WebSecurityConfig(@Lazy JwtUtils jwtUtils, JwtAuthEntryPoint jwtAuthEntryPoint,
+                        ShopUserDetailsService userDetailsService) {
+                this.jwtUtils = jwtUtils;
+                this.jwtAuthEntryPoint = jwtAuthEntryPoint;
+                this.userDetailsService = userDetailsService;
+        }
 
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, accessDeniedException) ->
-                response.sendError(HttpStatus.FORBIDDEN.value(), "Access Denied");
-    }
-    @Bean
-    public AuthTokenFilter authTokenFilter() {
-        return new AuthTokenFilter(jwtUtils, userDetailsService);
-    }
+        @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
+                return (request, response, accessDeniedException) -> response.sendError(HttpStatus.FORBIDDEN.value(),
+                                "Access Denied");
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public AuthTokenFilter authTokenFilter() {
+                return new AuthTokenFilter(jwtUtils, userDetailsService);
+        }
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        var authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
+        @Bean
+        public DaoAuthenticationProvider authenticationProvider() {
+                var authProvider = new DaoAuthenticationProvider();
+                authProvider.setUserDetailsService(userDetailsService);
+                authProvider.setPasswordEncoder(passwordEncoder());
+                return authProvider;
+        }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(AUTH).permitAll()
-                        .requestMatchers(PUBLIC).permitAll()
-                        .requestMatchers(EMAIL).permitAll()
-                        .requestMatchers(MOMO).permitAll()
-                        .requestMatchers(ZALO).permitAll()
-                        .requestMatchers(USER).permitAll()
-                        .requestMatchers(PAYMENT).permitAll()
-                        .requestMatchers(WS).permitAll()
-                        .requestMatchers(ADMIN).hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(jwtAuthEntryPoint)
-                                .accessDeniedHandler(accessDeniedHandler()))
-                .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/api/v1/auth/oauth2/callback", false)
-                        .failureUrl("/api/v1/auth/login?error")
-                )
-                .sessionManagement(session -> session
-                        .maximumSessions(Integer.MAX_VALUE)
-                        .maxSessionsPreventsLogin(true)
-                );
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+                return authConfig.getAuthenticationManager();
+        }
 
-        http.authenticationProvider(authenticationProvider());
-        http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http.csrf(AbstractHttpConfigurer::disable)
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(AUTH).permitAll()
+                                                .requestMatchers(PUBLIC).permitAll()
+                                                .requestMatchers(EMAIL).permitAll()
+                                                .requestMatchers(MOMO).permitAll()
+                                                .requestMatchers(ZALO).permitAll()
+                                                .requestMatchers(USER).permitAll()
+                                                .requestMatchers(PAYMENT).permitAll()
+                                                .requestMatchers(WS).permitAll()
+                                                .requestMatchers(ADMIN).hasRole("ADMIN")
+                                                .anyRequest().authenticated())
+                                .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint)
+                                                .accessDeniedHandler(accessDeniedHandler()))
+                                .oauth2Login(oauth2 -> oauth2
+                                                .defaultSuccessUrl("/api/v1/auth/oauth2/callback", false)
+                                                .failureUrl("/api/v1/auth/login?error")
+                                                .authorizationEndpoint(authorization -> authorization
+                                                                .baseUri("/oauth2/authorization"))
+                                                .redirectionEndpoint(redirection -> redirection
+                                                                .baseUri("/login/oauth2/code/*")))
+
+                                .sessionManagement(session -> session
+                                                .maximumSessions(Integer.MAX_VALUE)
+                                                .maxSessionsPreventsLogin(true));
+
+                http.authenticationProvider(authenticationProvider());
+                http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+                return http.build();
+        }
 }
-
