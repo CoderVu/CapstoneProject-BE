@@ -57,21 +57,5 @@ public class AuthController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @GetMapping("/oauth2/callback")
-    public void oauth2Callback(@AuthenticationPrincipal OAuth2User principal, HttpServletResponse response) throws IOException {
-        JwtResponse jwtResponse = authService.oauth2Callback(
-                principal.getAttribute("email"),
-                principal.getAttribute("name"),
-                principal.getAttribute("picture")
-        );
-
-        String token = jwtResponse.getToken();
-        String html = "<script>" +
-                "window.opener.postMessage({ token: '" + token + "' }, '*');" +
-                "window.close();" +
-                "</script>";
-        response.setContentType("text/html");
-        response.getWriter().write(html);
-    }
 
 }
