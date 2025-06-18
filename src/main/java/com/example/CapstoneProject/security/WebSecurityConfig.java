@@ -64,10 +64,6 @@ public class WebSecurityConfig {
         private static final String[] WS = {
                         "/ws/**"
         };
-        private static final String[] OAUTH2 = {
-                        "/oauth2/**",
-                        "/login/oauth2/**"
-        };
 
         @Autowired
         public WebSecurityConfig(@Lazy JwtUtils jwtUtils, JwtAuthEntryPoint jwtAuthEntryPoint,
@@ -119,12 +115,12 @@ public class WebSecurityConfig {
                                                 .requestMatchers(PAYMENT).permitAll()
                                                 .requestMatchers(WS).permitAll()
                                                 .requestMatchers(ADMIN).hasRole("ADMIN")
-                                                .requestMatchers(OAUTH2).permitAll()
                                                 .anyRequest().authenticated())
                                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint)
                                                 .accessDeniedHandler(accessDeniedHandler()))
                                 .oauth2Login(oauth2 -> oauth2
-                                        .failureUrl("/api/v1/auth/login?error")
+                                        .defaultSuccessUrl("/api/api/v1/auth/oauth2/callback", false)
+                                        .failureUrl("/api/api/v1/auth/login?error")
                                 )
                                 .sessionManagement(session -> session
                                                 .maximumSessions(Integer.MAX_VALUE)
@@ -135,3 +131,4 @@ public class WebSecurityConfig {
                 return http.build();
         }
 }
+
