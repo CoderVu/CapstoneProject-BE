@@ -119,8 +119,7 @@ public class WebSecurityConfig {
                                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint)
                                                 .accessDeniedHandler(accessDeniedHandler()))
                                 .oauth2Login(oauth2 -> oauth2
-                                        .defaultSuccessUrl("/api/api/v1/auth/oauth2/callback", false)
-                                        .failureUrl("/api/api/v1/auth/login?error")
+                                        .failureUrl("/api/v1/auth/login?error")
                                 )
                                 .sessionManagement(session -> session
                                                 .maximumSessions(Integer.MAX_VALUE)
