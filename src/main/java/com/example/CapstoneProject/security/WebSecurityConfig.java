@@ -7,8 +7,6 @@ import com.example.CapstoneProject.security.user.ShopUserDetailsService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -28,7 +26,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@RequiredArgsConstructor
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -36,6 +33,7 @@ public class WebSecurityConfig {
         private final ShopUserDetailsService userDetailsService;
         private final JwtAuthEntryPoint jwtAuthEntryPoint;
         private final JwtUtils jwtUtils;
+        private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
         private static final String[] AUTH = {
                         "/api/v1/auth/**"
@@ -65,12 +63,14 @@ public class WebSecurityConfig {
                         "/ws/**"
         };
 
-        @Autowired
-        public WebSecurityConfig(@Lazy JwtUtils jwtUtils, JwtAuthEntryPoint jwtAuthEntryPoint,
-                        ShopUserDetailsService userDetailsService) {
+        public WebSecurityConfig(@Lazy JwtUtils jwtUtils, 
+                               JwtAuthEntryPoint jwtAuthEntryPoint,
+                               ShopUserDetailsService userDetailsService,
+                               @Lazy OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
                 this.jwtUtils = jwtUtils;
                 this.jwtAuthEntryPoint = jwtAuthEntryPoint;
                 this.userDetailsService = userDetailsService;
+                this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
         }
 
         @Bean
@@ -119,7 +119,7 @@ public class WebSecurityConfig {
                                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint)
                                                 .accessDeniedHandler(accessDeniedHandler()))
                         .oauth2Login(oauth2 -> oauth2
-                                .defaultSuccessUrl("/api/v1/auth/oauth2/callback", false)
+                                .successHandler(oAuth2LoginSuccessHandler)
                                 .failureUrl("/api/v1/auth/login?error")
                         )
                                 .sessionManagement(session -> session

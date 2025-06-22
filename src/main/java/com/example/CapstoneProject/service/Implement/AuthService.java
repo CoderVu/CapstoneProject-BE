@@ -18,7 +18,6 @@ import com.example.CapstoneProject.service.Interface.IOTPService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,8 +33,6 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class AuthService implements IAuthService {
-    @Autowired
-    private AuthenticationManager authenticationManager;
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
@@ -72,8 +69,16 @@ public class AuthService implements IAuthService {
         }
 
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password));
+            // For normal authentication, we need to validate the password manually
+            if (!passwordEncoder.matches(password, user.get().getPassword())) {
+                return APIResponse.builder()
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .message("Thông tin đăng nhập không chính xác")
+                        .build();
+            }
+
+            ShopUserDetails userDetails = ShopUserDetails.buildUserDetails(user.get());
+            Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtTokenForUser(authentication);
 
