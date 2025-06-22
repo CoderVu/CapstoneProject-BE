@@ -31,7 +31,7 @@ public class DiscountCodeService implements IDiscountCodeService {
 
     @Override
     public APIResponse createRandomDiscountCode(double discountPercentage, LocalDateTime expiryDate) {
-        String code = generateRandomCode();
+        String code = generateRandomCode(discountPercentage);
         DiscountCode discountCode = new DiscountCode();
         discountCode.setCode(code);
         discountCode.setDiscountPercentage(discountPercentage);
@@ -40,18 +40,21 @@ public class DiscountCodeService implements IDiscountCodeService {
         discountCodeRepository.save(discountCode);
         return new APIResponse(200, "Discount code created successfully", true);
     }
-    private String generateRandomCode() {
+    private String generateRandomCode(double discountPercentage) {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder code = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
+        StringBuilder code = new StringBuilder("CAPSTONE");
+        for (int i = 0; i < 3; i++) {
             int index = random.nextInt(characters.length());
             code.append(characters.charAt(index));
         }
-        // Kiểm tra trùng
-        while (discountCodeRepository.findByCode(code.toString()).isPresent()) {
-            code.setCharAt(random.nextInt(8), characters.charAt(random.nextInt(characters.length())));
+        // Check for duplicates
+        String finalCode = code + String.valueOf((int) discountPercentage);
+        while (discountCodeRepository.findByCode(finalCode).isPresent()) {
+            int pos = random.nextInt(code.length());
+            code.setCharAt(pos, characters.charAt(random.nextInt(characters.length())));
+            finalCode = code + String.valueOf((int) discountPercentage);
         }
-        return code.toString();
+        return finalCode;
     }
 
     @Override

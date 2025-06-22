@@ -9,4 +9,10 @@ public interface ICollectionService {
     APIResponse addProductToCollection(String collectionId, String productId);
 
     APIResponse getAllCollections();
+
+    APIResponse updateCollection(String collectionId, CollectionRequest request);
+
+    APIResponse removeProductFromCollection(String collectionId, String productId);
+
+    APIResponse deleteCollection(String collectionId);
 }

@@ -9,6 +9,8 @@ public interface IAuthService {
 
     APIResponse registerUser(RegisterRequest registerRequest);
 
+    APIResponse registerStaff(RegisterRequest request);
+
     APIResponse forgetPassword(String email);
 
     APIResponse verifyForgetPassword(String email, String inputOtp);

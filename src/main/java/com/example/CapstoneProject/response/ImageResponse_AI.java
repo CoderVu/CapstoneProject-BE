@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,7 +17,7 @@ public class ImageResponse_AI {
     private String path;
     private String productId;
     private String productName;
-    private String vectorFeatures;
+    private List<Double> vectorFeatures;
 
 }
 

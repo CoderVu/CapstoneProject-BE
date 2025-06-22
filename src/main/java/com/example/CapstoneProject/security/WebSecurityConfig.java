@@ -111,14 +111,15 @@ public class WebSecurityConfig {
                                                 .requestMatchers(EMAIL).permitAll()
                                                 .requestMatchers(MOMO).permitAll()
                                                 .requestMatchers(ZALO).permitAll()
-                                                .requestMatchers(USER).permitAll()
                                                 .requestMatchers(PAYMENT).permitAll()
                                                 .requestMatchers(WS).permitAll()
-                                                .requestMatchers(ADMIN).hasRole("ADMIN")
+                                                .requestMatchers(USER).permitAll()
+                                                .requestMatchers(ADMIN).hasAnyRole("ADMIN", "STAFF")
                                                 .anyRequest().authenticated())
                                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint)
                                                 .accessDeniedHandler(accessDeniedHandler()))
                         .oauth2Login(oauth2 -> oauth2
+                                .defaultSuccessUrl("/api/v1/auth/oauth2/callback", false)
                                 .failureUrl("/api/v1/auth/login?error")
                         )
                                 .sessionManagement(session -> session

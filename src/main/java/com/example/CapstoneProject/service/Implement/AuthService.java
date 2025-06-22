@@ -179,6 +179,50 @@ public class AuthService implements IAuthService {
         emailService.sendEmail(request.getEmail(), subject, content);
         return APIResponse.success(Code.CREATED.getCode(), "Vui lòng kiểm tra email để xác thực tài khoản", null);
     }
+
+    @Override
+    public APIResponse registerStaff(RegisterRequest request) {
+        // Validate phone number
+        String phoneRegex = "^[0-9]{10}$";
+        if (!request.getPhoneNumber().matches(phoneRegex)) {
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Nhập số điện thoại không hợp lệ. Vui lòng nhập số điện thoại 10 chữ số.");
+        }
+
+        // Validate email
+        String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"; // Standard email format
+        if (!request.getEmail().matches(emailRegex)) {
+            return APIResponse.error(Code.BAD_REQUEST.getCode(), "Nhập email không hợp lệ. Vui lòng nhập email theo định dạng chuẩn.");
+        }
+
+        // Check if phone number or email already exists
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            return APIResponse.error(Code.CONFLICT.getCode(), request.getPhoneNumber() + " đã tồn tại");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return APIResponse.error(Code.CONFLICT.getCode(), request.getEmail() + " đã tồn tại");
+        }
+
+        User user = new User();
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAddress(request.getAddress());
+        user.setMethodLogin("NORMAL");
+
+        Optional<Role> optionalRole = Optional.ofNullable(roleRepository.findByName("ROLE_STAFF"));
+        if (optionalRole.isEmpty()) {
+            return APIResponse.error(Code.NOT_FOUND.getCode(), "ROLE_STAFF not found");
+        }
+
+        user.setRole(optionalRole.get());
+        user.setEnabled(Boolean.TRUE);
+        user.setIsDeleted(Boolean.FALSE);
+
+        userRepository.save(user);
+
+        return APIResponse.success(Code.CREATED.getCode(), "Đăng ký nhân viên thành công", null);
+    }
     @Override
     public APIResponse forgetPassword(String email) {
         Optional<User> user = userRepository.findByEmail(email);

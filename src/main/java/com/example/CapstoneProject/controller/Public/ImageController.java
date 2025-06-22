@@ -6,6 +6,7 @@ import com.example.CapstoneProject.service.ImageUploadService;
 import com.example.CapstoneProject.service.Interface.IImageService;
 import com.example.CapstoneProject.utils.ImageData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -65,7 +66,7 @@ public class ImageController {
     }
     @PostMapping("/image/add/vector_feature")
     public ResponseEntity<?> addVectorFeature(@RequestBody VectorFeatureRequest request) {
-        boolean result = imageService.addVectorToImage(request.getId(), request.getVectorFeatures());
+        boolean result = imageService.upsertVectorToImage(request.getId(), request.getVector(), false);
 
         if (result) {
             return ResponseEntity.ok("✅ Vector feature added successfully.");
@@ -74,15 +75,24 @@ public class ImageController {
         }
     }
     @PutMapping("/image/update/vector_feature")
-    public ResponseEntity<?> updateVectorFeature(@RequestBody VectorFeatureRequest request) {
-        boolean result = imageService.updateVectorToImage(request.getId(), request.getVectorFeatures());
-
-        if (result) {
-            return ResponseEntity.ok("✅ Vector feature updated successfully.");
+    public ResponseEntity<?> updateVector(@RequestBody VectorFeatureRequest request) {
+        boolean success = imageService.upsertVectorToImage(request.getId(), request.getVector(), true);
+        if (success) {
+            return ResponseEntity.ok("Updated successfully");
         } else {
-            return ResponseEntity.badRequest().body("❌ Image not found with ID: " + request.getId());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Update failed");
         }
     }
+    @DeleteMapping("/image/delete/vector_feature")
+    public ResponseEntity<?> deleteVectorFeature() {
+        boolean success = imageService.deleteAllVectorsFromZilliz();
+        if (success) {
+            return ResponseEntity.ok("✅ Vector feature deleted successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Image not found with ID: ");
+        }
+    }
+
 
 
 }

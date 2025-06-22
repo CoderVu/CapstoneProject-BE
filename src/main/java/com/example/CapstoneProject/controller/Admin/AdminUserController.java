@@ -1,9 +1,12 @@
 package com.example.CapstoneProject.controller.Admin;
 
 import com.example.CapstoneProject.StatusCode.Code;
+import com.example.CapstoneProject.request.RegisterRequest;
 import com.example.CapstoneProject.response.APIResponse;
 import com.example.CapstoneProject.response.UserResponse;
+import com.example.CapstoneProject.service.Interface.IAuthService;
 import com.example.CapstoneProject.service.Interface.IUserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,8 @@ import java.util.List;
 public class AdminUserController {
     @Autowired
     private IUserService userService;
+    @Autowired
+    private IAuthService authService;
 
     @GetMapping
     public ResponseEntity<APIResponse> getAllUsers() {
@@ -47,5 +52,11 @@ public class AdminUserController {
             return ResponseEntity.status(Code.NOT_FOUND.getCode()).body(response);
         }
         return ResponseEntity.ok(response);
+    }
+    @PostMapping("register/staff")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<APIResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
+        APIResponse response = authService.registerStaff(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }

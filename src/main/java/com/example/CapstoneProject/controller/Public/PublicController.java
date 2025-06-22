@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -90,17 +89,19 @@ public class PublicController {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
         return ResponseEntity.ok(response);
     }
-//    @GetMapping("/products/collection/{id}")
-//    public ResponseEntity<APIResponse> getProductsByCollectionId(
-//        @PathVariable String id,
-//        @RequestParam(defaultValue = "0") int page,
-//        @RequestParam(defaultValue = "30") int size) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        PaginatedResponse<ProductResponse> productResponses = productService.getProductsByCollection(id, pageable);
-//        APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
-//        return ResponseEntity.ok(response);
-//    }
-    @GetMapping("/products/collection/{name}")
+
+    @GetMapping("/products/collection/{id}")
+    public ResponseEntity<APIResponse> getProductsByCollection(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+            PaginatedResponse<ProductResponse> productResponses = productService.getProductsByCollection(id, pageable);
+            APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("/products/collection/name/{name}")
     public ResponseEntity<APIResponse> getProductsByCollectionName(
             @PathVariable String name,
             @RequestParam(defaultValue = "0") int page,
@@ -108,10 +109,10 @@ public class PublicController {
         Pageable pageable = PageRequest.of(page, size);
         PaginatedResponse<ProductResponse> productResponses = productService.getProductsByCollectionName(name, pageable);
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), productResponses);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @GetMapping("/products/collection")
+    @GetMapping("/products/collection/all")
     public ResponseEntity<APIResponse> getAllCollections() {
         APIResponse response = new APIResponse(Code.OK.getCode(), Code.OK.getMessage(), collectionService.getAllCollections());
         return ResponseEntity.ok(response);

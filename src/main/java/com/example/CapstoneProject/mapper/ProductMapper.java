@@ -75,6 +75,14 @@ public class ProductMapper {
                 .onSale(product.getOnSale())
                 .bestSeller(product.getBestSeller())
                 .brandName(product.getBrand().getName())
+                .collectionName(
+                        (product.getCollections() == null || product.getCollections().isEmpty())
+                                ? null
+                                : product.getCollections().stream()
+                                .map(Collection::getName)
+                                .collect(Collectors.toList())
+                )
+
                 .categoryName(product.getCategory().getName())
                 .newProduct(product.getNewProduct())
                 .images(product.getImages().stream()

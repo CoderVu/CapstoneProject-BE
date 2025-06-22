@@ -53,4 +53,5 @@ public interface IProductService {
     APIResponse getAllImages();
 
     PaginatedResponse<ProductResponse> getProductByImgUrl(List<String> imgUrls, Pageable pageable);
+
 }

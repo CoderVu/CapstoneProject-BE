@@ -20,6 +20,7 @@ public class ProductResponse {
     private Double discountPrice;
     private String gender;
     private Boolean onSale;
+    private List<String> collectionName;
     private Boolean bestSeller;
     private Integer sold;
     private List<VariantResponse> variants;

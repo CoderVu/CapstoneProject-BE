@@ -15,6 +15,6 @@ public class Collection {
     private String id;
     private String name;
 
-    @ManyToMany(mappedBy = "collections")
+    @ManyToMany(mappedBy = "collections", fetch = FetchType.EAGER)
     private List<Product> products = new ArrayList<>();
 }

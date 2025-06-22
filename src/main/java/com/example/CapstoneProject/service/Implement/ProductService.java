@@ -9,6 +9,8 @@ import com.example.CapstoneProject.mapper.ProductMapper;
 import com.example.CapstoneProject.repository.*;
 import com.example.CapstoneProject.response.*;
 import com.example.CapstoneProject.service.ImageUploadService;
+import com.example.CapstoneProject.service.Interface.IAuthService;
+import com.example.CapstoneProject.service.Interface.IImageService;
 import com.example.CapstoneProject.service.Interface.IProductService;
 import com.example.CapstoneProject.service.ProductSpecification;
 import org.slf4j.Logger;
@@ -17,8 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -48,6 +55,8 @@ public class ProductService implements IProductService {
     private ColorRepository colorRepository;
     @Autowired
     private ProductVariantRepository productVariantRepository;
+    @Autowired
+    private IImageService imageService;
 
     @Transactional
     @Override
@@ -703,37 +712,90 @@ public class ProductService implements IProductService {
                 .data(colors)
                 .build();
     }
+//    @Transactional
+//    @Override
+//    public APIResponse getAllImages() {
+//        List<Image> images = imageRepository.findAll();
+//        List<ImageResponse_AI> imageResponses = new ArrayList<>();
+//
+//        for (Image image : images) {
+//            String primaryKey = image.getVectorFeatures();
+//            List<Double> vectorData = null;
+//
+//            if (primaryKey != null && !primaryKey.isBlank()) {
+//                vectorData = imageService.getVectorFromZilliz(primaryKey);
+//            }
+//
+//            imageResponses.add(new ImageResponse_AI(
+//                    image.getId(),
+//                    image.getUrl(),
+//                    image.getProduct() != null ? image.getProduct().getId() : null,
+//                    image.getProduct() != null ? image.getProduct().getProductName() : null,
+//                    vectorData
+//            ));
+//        }
+//
+//        return APIResponse.builder()
+//                .statusCode(Code.OK.getCode())
+//                .message("Images found")
+//                .data(imageResponses)
+//                .build();
+//    }
+
     @Transactional
     @Override
     public APIResponse getAllImages() {
         List<Image> images = imageRepository.findAll();
+
+        // 1. Lấy danh sách primaryKey không null
+        List<String> primaryKeys = images.stream()
+                .map(Image::getVectorFeatures)
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .toList();
+
+        // 2. Gọi 1 lần để lấy toàn bộ vectors
+        Map<String, List<Double>> vectorsMap = (Map<String, List<Double>>) imageService.getVectorsFromZilliz(primaryKeys);
+
+        System.out.println("primaryKeys: " + primaryKeys);
+        // 3. Tạo response
         List<ImageResponse_AI> imageResponses = images.stream()
                 .map(image -> new ImageResponse_AI(
                         image.getId(),
                         image.getUrl(),
                         image.getProduct() != null ? image.getProduct().getId() : null,
                         image.getProduct() != null ? image.getProduct().getProductName() : null,
-                        image.getVectorFeatures()
+                        vectorsMap.get(image.getVectorFeatures()) // lấy vector từ map
                 ))
-                .collect(Collectors.toList());
+                .toList();
+
         return APIResponse.builder()
                 .statusCode(Code.OK.getCode())
                 .message("Images found")
                 .data(imageResponses)
                 .build();
     }
+
+
     @Transactional
     @Override
     public PaginatedResponse<ProductResponse> getProductByImgUrl(List<String> imgUrls, Pageable pageable) {
         Page<Product> productPage = productRepository.findByImgUrls(imgUrls, pageable);
-        List<ProductResponse> productResponses = productPage.getContent().stream()
+
+        // Use LinkedHashMap to preserve order and ensure uniqueness by product ID
+        Map<String, Product> uniqueProducts = new LinkedHashMap<>();
+        for (Product product : productPage.getContent()) {
+            uniqueProducts.putIfAbsent(product.getId(), product);
+        }
+
+        List<ProductResponse> productResponses = uniqueProducts.values().stream()
                 .map(productMapper::toProductResponse)
                 .collect(Collectors.toList());
 
         return new PaginatedResponse<>(
                 productResponses,
-                productPage.getTotalPages(),
-                productPage.getTotalElements(),
+                1, // Only one page since we deduplicate
+                productResponses.size(),
                 pageable.getPageNumber(),
                 pageable.getPageSize()
         );
