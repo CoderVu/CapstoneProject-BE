@@ -43,6 +43,7 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback"
             scope:
               - email
               - profile
