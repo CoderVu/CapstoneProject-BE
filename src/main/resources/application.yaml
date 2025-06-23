@@ -57,8 +57,4 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.web.client.RestTemplate: DEBUG
-    org.springframework.boot.autoconfigure.security.oauth2: DEBUG
+

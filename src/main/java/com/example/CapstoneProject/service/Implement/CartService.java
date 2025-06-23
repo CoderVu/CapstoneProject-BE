@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -92,6 +93,7 @@ public class CartService implements ICartService {
         cartRepository.save(cart);
         return new APIResponse(200, "Thêm vào giỏ hàng thành công", true);
     }
+
     @Override
     public APIResponse updateCart(String token, String cartId, Integer quantity, String color, String size) {
         String identifier = jwtUtils.getUserFromToken(token);
@@ -118,26 +120,33 @@ public class CartService implements ICartService {
 
         Cart cartEntity = cart.get();
 
+        // Get current product, color, and size
+        Product product = cartEntity.getProductVariant().getProduct();
+        Color colorEntity = color != null ? colorRepository.findByColor(color) : cartEntity.getProductVariant().getColor();
+        Size sizeEntity = size != null ? sizeRepository.findByName(size) : cartEntity.getProductVariant().getSize();
+
+        if (color != null && colorEntity == null) {
+            return new APIResponse(404, "Màu không tìm thấy", false);
+        }
+        if (size != null && sizeEntity == null) {
+            return new APIResponse(404, "Kích thước không tìm thấy", false);
+        }
+
+        // Find the correct ProductVariant for the new combination
+        ProductVariant newVariant = productVariantRepository.findByProductAndSizeAndColor(
+                product.getId(), sizeEntity.getSizeId(), colorEntity.getColorId()
+        );
+        if (newVariant == null) {
+            return new APIResponse(404, "Không tìm thấy biến thể sản phẩm", false);
+        }
+
+        cartEntity.setProductVariant(newVariant);
+
         if (quantity != null) {
             cartEntity.setQuantity(quantity);
             cartEntity.setTotalPrice(cartEntity.getUnitPrice() * quantity);
         }
 
-        if (color != null) {
-            Color colorEntity = colorRepository.findByColor(color);
-            if (colorEntity == null) {
-                return new APIResponse(404, "Màu không tìm thấy", false);
-            }
-            cartEntity.getProductVariant().setColor(colorEntity);
-        }
-
-        if (size != null) {
-            Size sizeEntity = sizeRepository.findByName(size);
-            if (sizeEntity == null) {
-                return new APIResponse(404, "Kích thước không tìm thấy", false);
-            }
-            cartEntity.getProductVariant().setSize(sizeEntity);
-        }
         if (cartEntity.getProductVariant().getQuantity() < cartEntity.getQuantity()) {
             return new APIResponse(404, "Số lượng sản phẩm không đủ", false);
         }
