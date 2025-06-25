@@ -53,7 +53,7 @@ public class ImageService implements IImageService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-        System.out.println("Response from Zilliz API: " + response.getBody());
+//        System.out.println("Response from Zilliz API: " + response.getBody());
 
         if (response.getStatusCode().is2xxSuccessful()) {
             try {
@@ -78,7 +78,7 @@ public class ImageService implements IImageService {
             }
         }
         else {
-            System.out.println("Zilliz API failed: " + response.getBody());
+//            System.out.println("Zilliz API failed: " + response.getBody());
         }
 
         return false;

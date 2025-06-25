@@ -462,6 +462,13 @@ public class OrderService implements IOrderService {
         }
 
         Order order = orderOpt.get();
+        // Kiểm tra trạng thai neu da giao hang thi khong the cap nhat
+        if ("DELIVERED".equals(order.getStatus())) {
+            return APIResponse.builder()
+                    .statusCode(Code.BAD_REQUEST.getCode())
+                    .message("Không thể cập nhật trạng thái đơn hàng đã giao")
+                    .build();
+        }
         order.setStatus(status);
         orderRepository.save(order);
 
